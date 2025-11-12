@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "269388697148",
+    "project_id": "iot-2025-evaluacion2-fe-cri",
+    "storage_bucket": "iot-2025-evaluacion2-fe-cri.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:269388697148:android:14e783a9274aa640cfbd39",
+        "android_client_info": {
+          "package_name": "com.example.appmovilagenda"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7KvU3XRD8I09Mz0fXUutxDQwc7c7Zlnc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
