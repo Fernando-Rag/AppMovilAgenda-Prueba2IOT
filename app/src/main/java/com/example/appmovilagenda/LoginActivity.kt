@@ -36,7 +36,7 @@ class LoginActivity : AppCompatActivity() {
                         } else {
                             Toast.makeText(
                                 baseContext,
-                                "Error de autenticación. Verifica tus datos.",
+                                "Error de autenticación. Verifica tus datos. aaaaaaaaaaaaa",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
