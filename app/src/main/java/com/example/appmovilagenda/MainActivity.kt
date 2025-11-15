@@ -29,7 +29,13 @@ class MainActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         db = FirebaseFirestore.getInstance()
 
-        if (auth.currentUser == null) {
+        val user = auth.currentUser
+        if (user == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return
+        } else if (!user.isEmailVerified) {
+            auth.signOut()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
             return

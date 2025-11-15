@@ -21,49 +21,44 @@ class LoginActivity : AppCompatActivity() {
         val emailEditText = findViewById<EditText>(R.id.emailEditText)
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
         val loginButton = findViewById<Button>(R.id.loginButton)
-        val signUpButton = findViewById<Button>(R.id.signUpButton)
 
+        // Iniciar sesión
         loginButton.setOnClickListener {
-            val email = emailEditText.text.toString()
-            val password = passwordEditText.text.toString()
+            val email = emailEditText.text.toString().trim()
+            val password = passwordEditText.text.toString().trim()
 
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             val user = auth.currentUser
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
+                            if (user != null && user.isEmailVerified) {
+                                startActivity(Intent(this, MainActivity::class.java))
+                                finish()
+                            } else {
+                                // Envía verificación y evita el acceso
+                                user?.sendEmailVerification()
+                                Toast.makeText(
+                                    baseContext,
+                                    "Te enviamos un correo de verificación. Revisa tu bandeja y vuelve a iniciar sesión.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                auth.signOut()
+                            }
                         } else {
-                            Toast.makeText(baseContext, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                baseContext,
+                                "Error de autenticación. Verifica tus datos.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
             } else {
-                Toast.makeText(baseContext, "Please fill all fields.",
-                    Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        signUpButton.setOnClickListener {
-            val email = emailEditText.text.toString()
-            val password = passwordEditText.text.toString()
-
-            if (email.isNotEmpty() && password.isNotEmpty()) {
-                auth.createUserWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(this) { task ->
-                        if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            startActivity(Intent(this, MainActivity::class.java))
-                            finish()
-                        } else {
-                            Toast.makeText(baseContext, "Authentication failed.",
-                                Toast.LENGTH_SHORT).show()
-                        }
-                    }
-            } else {
-                Toast.makeText(baseContext, "Please fill all fields.",
-                    Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    baseContext,
+                    "Por favor completa todos los campos.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
