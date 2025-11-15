@@ -31,7 +31,7 @@ class LoginActivity : AppCompatActivity() {
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
                             // Ir a InicioTareas después de iniciar sesión
-                            startActivity(Intent(this, InicioTareas::class.java))
+                            startActivity(Intent(this, InicioTareasActivity::class.java))
                             finish()
                         } else {
                             Toast.makeText(

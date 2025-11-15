@@ -9,7 +9,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppMovilAgenda">
 
-        <!-- Pantalla de inicio con intent-filter: requiere android:exported -->
         <activity
             android:name=".MenuActivity"
             android:exported="true">
@@ -19,10 +18,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Resto de activities (sin intent-filter) -->
         <activity android:name=".LoginActivity" />
         <activity android:name=".RegisterActivity" />
-        <activity android:name=".InicioTareas" />
+        <activity android:name=".InicioTareasActivity" />
         <activity android:name=".MainActivity" />
+
+        <!-- Nueva pantalla del formulario -->
+        <activity android:name=".CrearTareaActivity" />
     </application>
 </manifest>

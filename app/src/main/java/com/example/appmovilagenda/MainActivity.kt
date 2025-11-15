@@ -10,7 +10,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        startActivity(Intent(this, InicioTareas::class.java))
+        startActivity(Intent(this, InicioTareasActivity::class.java))
         finish()
     }
 }
