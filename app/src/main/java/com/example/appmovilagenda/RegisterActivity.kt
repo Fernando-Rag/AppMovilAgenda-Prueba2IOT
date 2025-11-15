@@ -42,10 +42,10 @@ class RegisterActivity : AppCompatActivity() {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
-                        auth.currentUser?.sendEmailVerification()
+                        // Sin verificación por correo
                         Toast.makeText(
                             this,
-                            "Cuenta creada. Te enviamos un correo de verificación.",
+                            "Cuenta creada correctamente. Inicia sesión con tus credenciales.",
                             Toast.LENGTH_LONG
                         ).show()
                         auth.signOut()

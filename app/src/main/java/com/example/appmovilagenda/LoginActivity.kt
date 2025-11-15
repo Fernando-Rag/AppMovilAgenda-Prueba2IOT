@@ -22,7 +22,6 @@ class LoginActivity : AppCompatActivity() {
         val passwordEditText = findViewById<EditText>(R.id.passwordEditText)
         val loginButton = findViewById<Button>(R.id.loginButton)
 
-        // Iniciar sesión
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString().trim()
@@ -31,20 +30,9 @@ class LoginActivity : AppCompatActivity() {
                 auth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this) { task ->
                         if (task.isSuccessful) {
-                            val user = auth.currentUser
-                            if (user != null && user.isEmailVerified) {
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
-                            } else {
-                                // Envía verificación y evita el acceso
-                                user?.sendEmailVerification()
-                                Toast.makeText(
-                                    baseContext,
-                                    "Te enviamos un correo de verificación. Revisa tu bandeja y vuelve a iniciar sesión.",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                auth.signOut()
-                            }
+                            // Ir a InicioTareas después de iniciar sesión
+                            startActivity(Intent(this, InicioTareas::class.java))
+                            finish()
                         } else {
                             Toast.makeText(
                                 baseContext,

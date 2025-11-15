@@ -12,7 +12,7 @@ class MenuActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
 
-        findViewById<TextView>(R.id.tvTitleAgenda).text = "Agenda"
+        findViewById<TextView>(R.id.tvTitleAgenda).text = "Agenda Movíl"
 
         findViewById<Button>(R.id.btnGoLogin).setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
