@@ -55,14 +55,14 @@
         android:id="@+id/btnAgregar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="@string/agregar_tarea"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="16dp"
         android:backgroundTint="#8B5A2B"
-        app:tint="#FFFFFF"
-        app:srcCompat="@drawable/ic_add_24"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="130dp"
+        android:contentDescription="@string/agregar_tarea"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:srcCompat="@drawable/ic_add_24"
+        app:tint="#FFFFFF" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
