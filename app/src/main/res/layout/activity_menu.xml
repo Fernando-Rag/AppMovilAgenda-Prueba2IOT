@@ -6,24 +6,40 @@
     android:layout_height="match_parent"
     android:padding="24dp">
 
+    <!-- Icono arriba del título -->
+    <androidx.appcompat.widget.AppCompatImageView
+        android:id="@+id/ivLogoMenu"
+        android:layout_width="301dp"
+        android:layout_height="247dp"
+        android:layout_marginTop="24dp"
+        android:adjustViewBounds="true"
+        android:contentDescription="@string/logo_menu_desc"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_logo_4f" />
+
     <TextView
         android:id="@+id/tvTitleAgenda"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:text="Agenda"
+        android:layout_marginTop="24dp"
+        android:text="-------Agenda Movil-------"
         android:textColor="@color/green_primary"
         android:textSize="28sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/ivLogoMenu" />
 
     <Button
         android:id="@+id/btnGoLogin"
+        style="@style/Widget.AppCompat.Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="64dp"
         android:background="@drawable/button_primary"
         android:elevation="4dp"
         android:paddingTop="12dp"
@@ -33,6 +49,7 @@
         android:textColor="@android:color/white"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitleAgenda" />
 
@@ -40,7 +57,7 @@
         android:id="@+id/btnGoRegister"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:background="@drawable/button_primary"
         android:elevation="4dp"
         android:paddingTop="12dp"
@@ -50,6 +67,7 @@
         android:textColor="@android:color/white"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/btnGoLogin"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="@+id/btnGoLogin"
         app:layout_constraintTop_toBottomOf="@id/btnGoLogin" />
 

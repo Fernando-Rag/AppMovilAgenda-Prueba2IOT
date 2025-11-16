@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="#8B5A2B"
+        android:backgroundTint="#50ad50"
         android:contentDescription="@string/agregar_tarea"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

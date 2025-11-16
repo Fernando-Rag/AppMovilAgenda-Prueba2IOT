@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">AppMovilAgenda</string>
     <string name="agregar_tarea">Agregar tarea</string>
+    <string name="logo_menu_desc">Logotipo del menú</string>
 
     <!-- Pantalla de creación -->
     <string name="agrega_tu_tarea">Agrega tu tarea</string>
