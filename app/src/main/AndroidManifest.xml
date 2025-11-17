@@ -27,6 +27,12 @@
         <activity android:name=".CrearTareaActivity" />
         <activity android:name=".EditarTareaActivity" />
 
+        <!-- Nuevas -->
+        <activity android:name=".RecordatoriosActivity" />
+        <activity android:name=".CalendarioActivity" />
+        <activity android:name=".SemanaActivity" />
+        <activity android:name=".DiaActivity" />
+
         <receiver
             android:name=".RecordatorioReceiver"
             android:exported="false" />

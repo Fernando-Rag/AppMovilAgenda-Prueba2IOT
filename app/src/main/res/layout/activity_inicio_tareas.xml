@@ -15,6 +15,9 @@
         android:padding="4dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"
+        android:contentDescription="@string/app_name"
+        app:srcCompat="@drawable/ic_menu_24"
+        app:tint="#3F6B45"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,6 +41,9 @@
         android:layout_height="35dp"
         android:layout_marginEnd="20dp"
         android:layout_marginTop="20dp"
+        android:contentDescription="@string/app_name"
+        app:srcCompat="@drawable/ic_calendar_24"
+        app:tint="#3F6B45"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -57,12 +63,11 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="#50ad50"
+        android:backgroundTint="#8C6A43"
         android:contentDescription="@string/agregar_tarea"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_add_24"
         app:tint="#FFFFFF" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
 
