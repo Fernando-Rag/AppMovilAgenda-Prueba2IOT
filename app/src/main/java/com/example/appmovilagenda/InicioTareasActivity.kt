@@ -1,9 +1,6 @@
 package com.example.appmovilagenda
 
 import android.app.Activity
-import android.app.AlarmManager
-import android.app.PendingIntent
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -14,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -33,7 +29,6 @@ class InicioTareasActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var tareaAdapter: TareaAdapter
 
-    // Drawer
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
     private lateinit var btnMenu: ImageView
@@ -79,7 +74,7 @@ class InicioTareasActivity : AppCompatActivity() {
                 .add(doc)
                 .addOnSuccessListener { ref ->
                     if (recordatorioMillis > System.currentTimeMillis()) {
-                        programarRecordatorio(ref.id, titulo, recordatorioMillis)
+                        RecordatorioHelper.programar(this, ref.id, titulo, recordatorioMillis)
                     }
                 }
                 .addOnFailureListener { e ->
@@ -89,23 +84,19 @@ class InicioTareasActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Usamos el contenedor con Drawer (no se reemplaza tu diseño, solo se envuelve)
         setContentView(R.layout.activity_inicio_tareas_drawer)
 
         NotificationHelper.createChannel(this)
         pedirPermisoNotificaciones()
 
-        // Drawer
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navView)
         btnMenu = findViewById(R.id.btnMenu)
         btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
 
-        // Clics del menú
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_tareas -> { /* ya aquí */ }
+                R.id.nav_tareas -> {}
                 R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
                 R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
                 R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
@@ -115,14 +106,9 @@ class InicioTareasActivity : AppCompatActivity() {
             true
         }
 
-        // Habilitar el botón de hamburguesa del header del Drawer para cerrar el panel
         setupDrawerHeaderClose()
 
-        // Lista
         recyclerView = findViewById(R.id.recyclerTareas)
-        // Activa cuadrícula de 2 columnas para ver tarjetas como en el mockup:
-        // recyclerView.layoutManager = GridLayoutManager(this, 2)
-        // O deja lista vertical:
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         tareaAdapter = TareaAdapter(emptyList()) { tarea ->
@@ -138,7 +124,6 @@ class InicioTareasActivity : AppCompatActivity() {
         }
         recyclerView.adapter = tareaAdapter
 
-        // Swipe con confirmación
         val swipe = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder) = false
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
@@ -165,18 +150,14 @@ class InicioTareasActivity : AppCompatActivity() {
             crearTareaLauncher.launch(intent)
         }
 
-        // Botón calendario del header
         findViewById<ImageView>(R.id.btnCalendario)?.setOnClickListener {
             startActivity(Intent(this, CalendarioActivity::class.java))
         }
     }
 
-    // Toma el header del NavigationView y asigna el click para cerrar el Drawer
     private fun setupDrawerHeaderClose() {
-        // Si el header ya está, úsalo; si no, infla el layout del header
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
-
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
         }
@@ -225,8 +206,7 @@ class InicioTareasActivity : AppCompatActivity() {
         val ref = db.collection("todos").document(tarea.id)
         ref.delete()
             .addOnSuccessListener {
-                // Cancelar recordatorio si existía
-                cancelarRecordatorio(tarea.id)
+                RecordatorioHelper.cancelar(this, tarea.id)
 
                 Snackbar.make(recyclerView, "Tarea eliminada", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") {
@@ -240,43 +220,21 @@ class InicioTareasActivity : AppCompatActivity() {
                             "userId" to uid,
                             "createdAt" to FieldValue.serverTimestamp()
                         )
-                        // Recrea el doc con el mismo id
-                        db.collection("todos").document(tarea.id).set(data).addOnSuccessListener {
-                            tarea.recordatorioMillis?.let { millis ->
-                                if (millis > System.currentTimeMillis()) {
-                                    programarRecordatorio(tarea.id, tarea.titulo, millis)
+                        db.collection("todos").document(tarea.id)
+                            .set(data)
+                            .addOnSuccessListener {
+                                tarea.recordatorioMillis?.let { millis ->
+                                    if (millis > System.currentTimeMillis()) {
+                                        RecordatorioHelper.programar(this, tarea.id, tarea.titulo, millis)
+                                    }
                                 }
                             }
-                        }
                     }
                     .show()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "No se pudo eliminar", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    private fun programarRecordatorio(tareaId: String, titulo: String, millis: Long) {
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, RecordatorioReceiver::class.java).apply {
-            putExtra("tareaId", tareaId)
-            putExtra("titulo", titulo)
-        }
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        else PendingIntent.FLAG_UPDATE_CURRENT
-        val pi = PendingIntent.getBroadcast(this, tareaId.hashCode(), intent, flags)
-        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, millis, pi)
-    }
-
-    private fun cancelarRecordatorio(tareaId: String) {
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, RecordatorioReceiver::class.java)
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        else PendingIntent.FLAG_UPDATE_CURRENT
-        val pi = PendingIntent.getBroadcast(this, tareaId.hashCode(), intent, flags)
-        am.cancel(pi)
     }
 
     private fun pedirPermisoNotificaciones() {

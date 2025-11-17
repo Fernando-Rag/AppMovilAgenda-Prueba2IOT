@@ -1,12 +1,7 @@
 package com.example.appmovilagenda
 
-import android.app.AlarmManager
 import android.app.DatePickerDialog
-import android.app.PendingIntent
 import android.app.TimePickerDialog
-import android.content.Context
-import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -57,8 +52,7 @@ class EditarTareaActivity : AppCompatActivity() {
 
         if (tareaId.isBlank()) {
             Toast.makeText(this, "ID inválido", Toast.LENGTH_SHORT).show()
-            finish()
-            return
+            finish(); return
         }
 
         // Prefill
@@ -117,11 +111,9 @@ class EditarTareaActivity : AppCompatActivity() {
             val nuevaHora = edtHora.text?.toString()?.trim().orEmpty()
 
             if (nuevoTitulo.isBlank()) {
-                Toast.makeText(this, "Título obligatorio", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                Toast.makeText(this, "Título obligatorio", Toast.LENGTH_SHORT).show(); return@setOnClickListener
             }
 
-            // Validar recordatorio futuro
             recordatorioMillis?.let {
                 if (it <= System.currentTimeMillis()) {
                     Toast.makeText(this, "El recordatorio debe ser futuro", Toast.LENGTH_SHORT).show()
@@ -135,24 +127,22 @@ class EditarTareaActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Mapa con valores nullable
             val updateData = hashMapOf(
                 "titulo" to nuevoTitulo,
                 "descripcion" to nuevaDescripcion,
                 "fecha" to nuevaFecha,
                 "hora" to nuevaHora,
-                "recordatorioMillis" to recordatorioMillis // puede ser null
+                "recordatorioMillis" to recordatorioMillis
             )
 
-            // Usamos set + merge para evitar problemas con null
             db.collection("todos").document(tareaId)
                 .set(updateData, SetOptions.merge())
                 .addOnSuccessListener {
-                    // Reprogramar notificación
-                    cancelarRecordatorio(tareaId)
+                    // Reprogramar
+                    RecordatorioHelper.cancelar(this, tareaId)
                     recordatorioMillis?.let { millis ->
                         if (millis > System.currentTimeMillis()) {
-                            programarRecordatorio(tareaId, nuevoTitulo, millis)
+                            RecordatorioHelper.programar(this, tareaId, nuevoTitulo, millis)
                         }
                     }
                     Toast.makeText(this, "Cambios guardados", Toast.LENGTH_SHORT).show()
@@ -186,28 +176,5 @@ class EditarTareaActivity : AppCompatActivity() {
         } catch (_: Exception) {
             recordatorioMillis = null
         }
-    }
-
-    private fun programarRecordatorio(tareaId: String, titulo: String, millis: Long) {
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, RecordatorioReceiver::class.java).apply {
-            putExtra("tareaId", tareaId)
-            putExtra("titulo", titulo)
-        }
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        else PendingIntent.FLAG_UPDATE_CURRENT
-        val pi = PendingIntent.getBroadcast(this, tareaId.hashCode(), intent, flags)
-        am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, millis, pi)
-    }
-
-    private fun cancelarRecordatorio(tareaId: String) {
-        val am = getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(this, RecordatorioReceiver::class.java)
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        else PendingIntent.FLAG_UPDATE_CURRENT
-        val pi = PendingIntent.getBroadcast(this, tareaId.hashCode(), intent, flags)
-        am.cancel(pi)
     }
 }

@@ -29,7 +29,7 @@
                 android:id="@+id/edtTitulo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:singleLine="true"/>
+                android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -43,7 +43,7 @@
                 android:layout_height="120dp"
                 android:gravity="top|start"
                 android:maxLines="6"
-                android:minLines="4"/>
+                android:minLines="4" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -56,7 +56,7 @@
                 android:focusable="false"
                 android:clickable="true"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -69,17 +69,17 @@
                 android:focusable="false"
                 android:clickable="true"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Ocultamos los campos de recordatorio si usaremos el pop-up -->
+        <!-- Campos antiguos ocultos -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recordatorio (fecha y hora)"
             android:textStyle="bold"
             android:layout_marginTop="16dp"
-            android:visibility="gone"/>
+            android:visibility="gone" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -91,7 +91,7 @@
                 android:focusable="false"
                 android:clickable="true"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -105,7 +105,7 @@
                 android:focusable="false"
                 android:clickable="true"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
@@ -116,6 +116,6 @@
             android:textAllCaps="false"
             android:layout_marginTop="24dp"
             app:cornerRadius="28dp"
-            app:backgroundTint="#2E7D32"/>
+            app:backgroundTint="#2E7D32" />
     </LinearLayout>
 </ScrollView>

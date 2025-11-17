@@ -22,7 +22,7 @@ class CrearTareaActivity : AppCompatActivity() {
         const val EXTRA_HORA = "extra_hora"
         const val EXTRA_RECORDATORIO_MILLIS = "extra_recordatorio_millis"
 
-        private const val MARGEN_TEST_MS = 30_000L // permitir pruebas cercanas (+30s)
+        private const val MARGEN_TEST_MS = 30_000L          // Permite pruebas cercanas (>=30s)
         private const val DOS_DIAS_MS = 2L * 24 * 60 * 60 * 1000
     }
 
@@ -68,23 +68,16 @@ class CrearTareaActivity : AppCompatActivity() {
             val fecha = edtFecha.text?.toString()?.trim().orEmpty()
             val hora = edtHora.text?.toString()?.trim().orEmpty()
 
-            if (titulo.isBlank()) {
-                toast("Título obligatorio"); return@setOnClickListener
-            }
-            if (fecha.isBlank()) {
-                toast("Debes elegir la fecha de entrega"); return@setOnClickListener
-            }
+            if (titulo.isBlank()) { toast("Título obligatorio"); return@setOnClickListener }
+            if (fecha.isBlank())  { toast("Debes elegir la fecha de entrega"); return@setOnClickListener }
 
             val dueMillis = parseDueMillis(fecha, hora)
-            if (dueMillis == null) {
-                toast("Fecha u hora de entrega inválida"); return@setOnClickListener
-            }
+            if (dueMillis == null) { toast("Fecha u hora de entrega inválida"); return@setOnClickListener }
 
-            // Pop-up para recordatorio
             showReminderChoiceDialog(dueMillis) { recMsOrNull ->
                 recordatorioMillis = recMsOrNull
 
-                // Validaciones si hay recordatorio
+                // Validaciones finales
                 recordatorioMillis?.let { recMs ->
                     val now = System.currentTimeMillis()
                     if (recMs < now + MARGEN_TEST_MS) {
@@ -97,7 +90,7 @@ class CrearTareaActivity : AppCompatActivity() {
                     }
                 }
 
-                // Devolver a InicioTareasActivity; allí ya programas la notificación
+                // Devolvemos resultado
                 intent.putExtra(EXTRA_TITULO, titulo)
                 intent.putExtra(EXTRA_DESCRIPCION, descripcion)
                 intent.putExtra(EXTRA_FECHA, fecha)
@@ -110,11 +103,7 @@ class CrearTareaActivity : AppCompatActivity() {
     }
 
     private fun showReminderChoiceDialog(dueMillis: Long, onResult: (Long?) -> Unit) {
-        val opciones = arrayOf(
-            "2 días antes (recomendado)",
-            "Elegir manualmente",
-            "No agregar"
-        )
+        val opciones = arrayOf("2 días antes (recomendado)", "Elegir manualmente", "No agregar")
         MaterialAlertDialogBuilder(this)
             .setTitle("¿Deseas agregar un recordatorio?")
             .setItems(opciones) { dialog, idx ->
@@ -123,19 +112,12 @@ class CrearTareaActivity : AppCompatActivity() {
                         val candidato = dueMillis - DOS_DIAS_MS
                         val now = System.currentTimeMillis()
                         if (candidato <= now + MARGEN_TEST_MS) {
-                            // Entrega demasiado próxima: pedir manual
-                            toast("La entrega está muy próxima para recordar 2 días antes. Elige hora manual.")
+                            toast("Entrega muy próxima, elige hora manual.")
                             pickManualReminder(dueMillis) { onResult(it) }
-                        } else {
-                            onResult(candidato)
-                        }
+                        } else onResult(candidato)
                     }
-                    1 -> { // manual
-                        pickManualReminder(dueMillis) { onResult(it) }
-                    }
-                    else -> { // sin recordatorio
-                        onResult(null)
-                    }
+                    1 -> pickManualReminder(dueMillis) { onResult(it) }
+                    else -> onResult(null)
                 }
                 dialog.dismiss()
             }
@@ -144,7 +126,6 @@ class CrearTareaActivity : AppCompatActivity() {
     }
 
     private fun pickManualReminder(dueMillis: Long, onPicked: (Long?) -> Unit) {
-        // Sugerencia por defecto: min(due-2d, now+1h), pero siempre futuro
         val now = System.currentTimeMillis()
         var sugerido = dueMillis - DOS_DIAS_MS
         val unaHoraDespues = now + 60 * 60 * 1000
@@ -163,18 +144,18 @@ class CrearTareaActivity : AppCompatActivity() {
         }, def.get(Calendar.YEAR), def.get(Calendar.MONTH), def.get(Calendar.DAY_OF_MONTH)).show()
     }
 
-    // Si no hay hora, asumimos 23:59 del mismo día
+    // Si no hay hora de entrega, asumimos 23:59 del día elegido
     private fun parseDueMillis(fechaTxt: String, horaTxt: String?): Long? {
         return try {
-            val pf = fechaTxt.split("-")
-            val d = pf[0].toInt()
-            val m = pf[1].toInt() - 1
-            val y = pf[2].toInt()
+            val p = fechaTxt.split("-")
+            val d = p[0].toInt()
+            val m = p[1].toInt() - 1
+            val y = p[2].toInt()
             val cal = Calendar.getInstance()
             if (horaTxt.isNullOrBlank()) cal.set(y, m, d, 23, 59, 0)
             else {
-                val ph = horaTxt.split(":")
-                cal.set(y, m, d, ph[0].toInt(), ph[1].toInt(), 0)
+                val hh = horaTxt.split(":")
+                cal.set(y, m, d, hh[0].toInt(), hh[1].toInt(), 0)
             }
             cal.set(Calendar.MILLISECOND, 0)
             cal.timeInMillis
