@@ -3,6 +3,7 @@ package com.example.appmovilagenda
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -14,47 +15,65 @@ class CalendarioActivity : AppCompatActivity() {
     private lateinit var navView: NavigationView
     private lateinit var btnMenu: ImageView
 
+    private lateinit var chipMes: TextView
+    private lateinit var chipSemana: TextView
+    private lateinit var chipDia: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Usar el contenedor con Drawer para esta pantalla
         setContentView(R.layout.activity_calendario_drawer)
 
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navView)
         btnMenu = findViewById(R.id.btnMenu)
 
-        // Abrir Drawer con la hamburguesa (en la pantalla)
         btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
 
-        // Navegación del Drawer (mismo menú que Inicio)
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
                 R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
-                R.id.nav_calendario -> { /* ya aquí */ }
+                R.id.nav_calendario -> { }
                 R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
                 R.id.nav_dia -> startActivity(Intent(this, DiaActivity::class.java))
             }
             drawerLayout.closeDrawers()
             true
         }
-
-        // Habilita que el ícono de hamburguesa del header del Drawer cierre el panel
         setupDrawerHeaderClose()
 
-        // TODO: lógica de cambiar mes, y chips para navegar:
-        // findViewById<TextView>(R.id.chipSemana).setOnClickListener { startActivity(Intent(this, SemanaActivity::class.java)) }
-        // findViewById<TextView>(R.id.chipDia).setOnClickListener { startActivity(Intent(this, DiaActivity::class.java)) }
+        chipMes = findViewById(R.id.chipMes)
+        chipSemana = findViewById(R.id.chipSemana)
+        chipDia = findViewById(R.id.chipDia)
+
+        setChipSelected(chipMes, true)
+        setChipSelected(chipSemana, false)
+        setChipSelected(chipDia, false)
+
+        chipMes.setOnClickListener { /* ya aquí */ }
+        chipSemana.setOnClickListener {
+            startActivity(Intent(this, SemanaActivity::class.java))
+        }
+        chipDia.setOnClickListener {
+            startActivity(Intent(this, DiaActivity::class.java))
+        }
     }
 
-    // Toma el header del NavigationView y asigna el click para cerrar el Drawer
     private fun setupDrawerHeaderClose() {
-        // Si el header ya está inflado, úsalo; si no, inflar el layout del header
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
-
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun setChipSelected(view: TextView, selected: Boolean) {
+        if (selected) {
+            view.setBackgroundResource(R.drawable.chip_brown)
+            view.setTextColor(0xFF6B4E2E.toInt())
+        } else {
+            view.setBackgroundResource(R.drawable.chip_green)
+            view.setTextColor(0xFF1F4226.toInt())
         }
     }
 }
