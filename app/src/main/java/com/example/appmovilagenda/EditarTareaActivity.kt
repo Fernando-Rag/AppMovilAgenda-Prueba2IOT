@@ -14,6 +14,7 @@ import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import java.util.Calendar
 
 class EditarTareaActivity : AppCompatActivity() {
@@ -55,7 +56,9 @@ class EditarTareaActivity : AppCompatActivity() {
         if (recMillis > 0) recordatorioMillis = recMillis
 
         if (tareaId.isBlank()) {
-            Toast.makeText(this, "ID inválido", Toast.LENGTH_SHORT).show(); finish(); return
+            Toast.makeText(this, "ID inválido", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
 
         // Prefill
@@ -66,11 +69,11 @@ class EditarTareaActivity : AppCompatActivity() {
         recordatorioMillis?.let {
             val cal = Calendar.getInstance()
             cal.timeInMillis = it
-            val d = String.format("%02d", cal.get(Calendar.DAY_OF_MONTH))
-            val m = String.format("%02d", cal.get(Calendar.MONTH) + 1)
+            val d = "%02d".format(cal.get(Calendar.DAY_OF_MONTH))
+            val m = "%02d".format(cal.get(Calendar.MONTH) + 1)
             val y = cal.get(Calendar.YEAR)
-            val h = String.format("%02d", cal.get(Calendar.HOUR_OF_DAY))
-            val min = String.format("%02d", cal.get(Calendar.MINUTE))
+            val h = "%02d".format(cal.get(Calendar.HOUR_OF_DAY))
+            val min = "%02d".format(cal.get(Calendar.MINUTE))
             edtRecFecha.setText("$d-$m-$y")
             edtRecHora.setText("$h:$min")
         }
@@ -78,42 +81,32 @@ class EditarTareaActivity : AppCompatActivity() {
         edtFecha.setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, y, mm, dd ->
-                val dia = String.format("%02d", dd)
-                val mes = String.format("%02d", mm + 1)
-                edtFecha.setText("$dia-$mes-$y")
+                edtFecha.setText("%02d-%02d-%d".format(dd, mm + 1, y))
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
         edtHora.setOnClickListener {
             val cal = Calendar.getInstance()
             TimePickerDialog(this, { _, h, min ->
-                val hs = String.format("%02d", h)
-                val ms = String.format("%02d", min)
-                edtHora.setText("$hs:$ms")
+                edtHora.setText("%02d:%02d".format(h, min))
             }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
         }
 
         edtRecFecha.setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, y, mm, dd ->
-                val dia = String.format("%02d", dd)
-                val mes = String.format("%02d", mm + 1)
-                edtRecFecha.setText("$dia-$mes-$y")
-                if (edtRecHora.text?.toString()?.isNotBlank() == true) {
-                    recalcularRecordatorio(edtRecFecha.text.toString(), edtRecHora.text.toString())
-                }
+                edtRecFecha.setText("%02d-%02d-%d".format(dd, mm + 1, y))
+                val hTxt = edtRecHora.text?.toString().orEmpty()
+                if (hTxt.isNotBlank()) recalcularRecordatorio(edtRecFecha.text.toString(), hTxt)
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
         edtRecHora.setOnClickListener {
             val cal = Calendar.getInstance()
             TimePickerDialog(this, { _, h, min ->
-                val hs = String.format("%02d", h)
-                val ms = String.format("%02d", min)
-                edtRecHora.setText("$hs:$ms")
-                if (edtRecFecha.text?.toString()?.isNotBlank() == true) {
-                    recalcularRecordatorio(edtRecFecha.text.toString(), edtRecHora.text.toString())
-                }
+                edtRecHora.setText("%02d:%02d".format(h, min))
+                val fTxt = edtRecFecha.text?.toString().orEmpty()
+                if (fTxt.isNotBlank()) recalcularRecordatorio(fTxt, edtRecHora.text.toString())
             }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
         }
 
@@ -124,34 +117,36 @@ class EditarTareaActivity : AppCompatActivity() {
             val nuevaHora = edtHora.text?.toString()?.trim().orEmpty()
 
             if (nuevoTitulo.isBlank()) {
-                Toast.makeText(this, "Título obligatorio", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+                Toast.makeText(this, "Título obligatorio", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
+
+            // Validar recordatorio futuro
             recordatorioMillis?.let {
                 if (it <= System.currentTimeMillis()) {
-                    Toast.makeText(this, "Recordatorio debe ser futuro", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "El recordatorio debe ser futuro", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
             }
 
             val uid = auth.currentUser?.uid
             if (uid == null) {
-                Toast.makeText(this, "Sesion inválida", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+                Toast.makeText(this, "Sesión inválida", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
             }
 
-            val updateMap = mutableMapOf<String, Any>(
+            // Mapa con valores nullable
+            val updateData = hashMapOf(
                 "titulo" to nuevoTitulo,
                 "descripcion" to nuevaDescripcion,
                 "fecha" to nuevaFecha,
-                "hora" to nuevaHora
+                "hora" to nuevaHora,
+                "recordatorioMillis" to recordatorioMillis // puede ser null
             )
-            if (recordatorioMillis != null) {
-                updateMap["recordatorioMillis"] = recordatorioMillis!!
-            } else {
-                updateMap["recordatorioMillis"] = null as Any
-            }
 
+            // Usamos set + merge para evitar problemas con null
             db.collection("todos").document(tareaId)
-                .update(updateMap)
+                .set(updateData, SetOptions.merge())
                 .addOnSuccessListener {
                     // Reprogramar notificación
                     cancelarRecordatorio(tareaId)
@@ -173,18 +168,20 @@ class EditarTareaActivity : AppCompatActivity() {
 
     private fun recalcularRecordatorio(fechaTxt: String, horaTxt: String) {
         try {
-            val partesF = fechaTxt.split("-")
-            val partesH = horaTxt.split(":")
-            if (partesF.size == 3 && partesH.size == 2) {
-                val d = partesF[0].toInt()
-                val m = partesF[1].toInt() - 1
-                val y = partesF[2].toInt()
-                val h = partesH[0].toInt()
-                val min = partesH[1].toInt()
+            val f = fechaTxt.split("-")
+            val h = horaTxt.split(":")
+            if (f.size == 3 && h.size == 2) {
+                val d = f[0].toInt()
+                val m = f[1].toInt() - 1
+                val y = f[2].toInt()
+                val hh = h[0].toInt()
+                val mm = h[1].toInt()
                 val cal = Calendar.getInstance()
-                cal.set(y, m, d, h, min, 0)
+                cal.set(y, m, d, hh, mm, 0)
                 cal.set(Calendar.MILLISECOND, 0)
                 recordatorioMillis = cal.timeInMillis
+            } else {
+                recordatorioMillis = null
             }
         } catch (_: Exception) {
             recordatorioMillis = null

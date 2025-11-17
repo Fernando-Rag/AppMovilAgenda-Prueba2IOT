@@ -33,6 +33,7 @@ class InicioTareasActivity : AppCompatActivity() {
 
     private var tareasListener: ListenerRegistration? = null
 
+    // Recibir resultado del formulario "Crear" y guardar en Firestore
     private val crearTareaLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode != Activity.RESULT_OK) return@registerForActivityResult
@@ -82,14 +83,15 @@ class InicioTareasActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inicio_tareas)
 
+        // Canal de notificaciones y permiso (no cambia tu UI)
         NotificationHelper.createChannel(this)
         pedirPermisoNotificaciones()
 
         recyclerView = findViewById(R.id.recyclerTareas)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
+        // Tap para editar (no modifica estilos)
         tareaAdapter = TareaAdapter(emptyList()) { tarea ->
-            // Abrir edición
             val intent = Intent(this, EditarTareaActivity::class.java).apply {
                 putExtra(EditarTareaActivity.EXTRA_ID, tarea.id)
                 putExtra(EditarTareaActivity.EXTRA_TITULO, tarea.titulo)
@@ -102,11 +104,19 @@ class InicioTareasActivity : AppCompatActivity() {
         }
         recyclerView.adapter = tareaAdapter
 
+        // Swipe con confirmación (sin cambiar estilos de ítems)
         val swipe = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
-            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
+            override fun onMove(
+                rv: RecyclerView,
+                vh: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean = false
+
             override fun onSwiped(vh: RecyclerView.ViewHolder, direction: Int) {
                 val position = vh.bindingAdapterPosition
                 val tarea = tareaAdapter.getItemAt(position)
+
+                // Restauramos visualmente mientras preguntamos
                 recyclerView.adapter?.notifyItemChanged(position)
                 if (tarea.id.isBlank()) return
 
@@ -117,11 +127,13 @@ class InicioTareasActivity : AppCompatActivity() {
                     .setPositiveButton("Eliminar") { dialog, _ ->
                         dialog.dismiss()
                         eliminarTareaConUndo(tarea)
-                    }.show()
+                    }
+                    .show()
             }
         }
         ItemTouchHelper(swipe).attachToRecyclerView(recyclerView)
 
+        // FAB para crear
         val fab: FloatingActionButton = findViewById(R.id.btnAgregar)
         fab.setOnClickListener {
             val intent = Intent(this, CrearTareaActivity::class.java)
@@ -133,7 +145,9 @@ class InicioTareasActivity : AppCompatActivity() {
         val ref = db.collection("todos").document(tarea.id)
         ref.delete()
             .addOnSuccessListener {
+                // Cancelar recordatorio si existía
                 cancelarRecordatorio(tarea.id)
+
                 Snackbar.make(recyclerView, "Tarea eliminada", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") {
                         val uid = auth.currentUser?.uid ?: return@setAction
@@ -146,6 +160,7 @@ class InicioTareasActivity : AppCompatActivity() {
                             "userId" to uid,
                             "createdAt" to FieldValue.serverTimestamp()
                         )
+                        // Recrear con el mismo id
                         db.collection("todos").document(tarea.id).set(data).addOnSuccessListener {
                             tarea.recordatorioMillis?.let { millis ->
                                 if (millis > System.currentTimeMillis()) {
@@ -153,7 +168,8 @@ class InicioTareasActivity : AppCompatActivity() {
                                 }
                             }
                         }
-                    }.show()
+                    }
+                    .show()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "No se pudo eliminar", Toast.LENGTH_SHORT).show()
@@ -165,7 +181,8 @@ class InicioTareasActivity : AppCompatActivity() {
         val uid = auth.currentUser?.uid
         if (uid == null) {
             Toast.makeText(this, "Inicia sesión para ver tus tareas", Toast.LENGTH_SHORT).show()
-            tareaAdapter.actualizarLista(emptyList()); return
+            tareaAdapter.actualizarLista(emptyList())
+            return
         }
 
         tareasListener = db.collection("todos")
@@ -176,6 +193,7 @@ class InicioTareasActivity : AppCompatActivity() {
                     Toast.makeText(this, "Error cargando: ${error.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
+
                 val tareas = snapshot?.documents?.map { doc ->
                     Tarea(
                         id = doc.id,
@@ -188,6 +206,7 @@ class InicioTareasActivity : AppCompatActivity() {
                         userId = doc.getString("userId").orEmpty()
                     )
                 }.orEmpty()
+
                 tareaAdapter.actualizarLista(tareas)
             }
     }
@@ -207,7 +226,6 @@ class InicioTareasActivity : AppCompatActivity() {
         val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         else PendingIntent.FLAG_UPDATE_CURRENT
-
         val pi = PendingIntent.getBroadcast(this, tareaId.hashCode(), intent, flags)
         am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, millis, pi)
     }
