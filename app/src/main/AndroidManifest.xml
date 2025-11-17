@@ -8,12 +8,14 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
+        android:name=".App"
         android:allowBackup="true"
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppMovilAgenda">
+        android:theme="@style/Theme.AppMovilAgenda"
+        android:localeConfig="@xml/locales_config">
 
         <activity
             android:name=".MenuActivity"
@@ -30,8 +32,6 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".CrearTareaActivity" />
         <activity android:name=".EditarTareaActivity" />
-
-        <!-- Nuevas -->
         <activity android:name=".RecordatoriosActivity" />
         <activity android:name=".CalendarioActivity" />
         <activity android:name=".SemanaActivity" />

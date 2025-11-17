@@ -63,11 +63,10 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="16dp"
-        android:backgroundTint="#8C6A43"
         android:contentDescription="@string/agregar_tarea"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@drawable/ic_add_24"
-        app:tint="#FFFFFF" />
+        app:tint="#FFFFFF"
+        app:backgroundTint="@color/green_primary" />
 </androidx.constraintlayout.widget.ConstraintLayout>
-

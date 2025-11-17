@@ -1,0 +1,7 @@
+<resources>
+    <dimen name="screen_padding">20dp</dimen>
+    <!-- Offset para alinear con la altura del título de CALENDARIO -->
+    <dimen name="calendar_title_top_offset">72dp</dimen>
+    <!-- Tamaño unificado de títulos -->
+    <dimen name="title_text_size">32sp</dimen>
+</resources>

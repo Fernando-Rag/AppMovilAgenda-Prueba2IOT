@@ -2,6 +2,7 @@ package com.example.appmovilagenda
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
@@ -10,6 +11,7 @@ class SemanaActivity : AppCompatActivity() {
     private lateinit var chipMes: TextView
     private lateinit var chipSemana: TextView
     private lateinit var chipDia: TextView
+    private val dbg = "SEMANA_DBG"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -20,17 +22,22 @@ class SemanaActivity : AppCompatActivity() {
         chipSemana = findViewById(R.id.chipSemana)
         chipDia = findViewById(R.id.chipDia)
 
+        Log.d(dbg, "Refs => mes=$chipMes semana=$chipSemana dia=$chipDia")
+
         setChipSelected(chipMes, false)
         setChipSelected(chipSemana, true)
         setChipSelected(chipDia, false)
 
         chipMes.setOnClickListener {
+            Log.d(dbg, "Click chipMes -> Calendario")
             startActivity(Intent(this, CalendarioActivity::class.java))
         }
         chipSemana.setOnClickListener {
-            // ya aquí
+            Log.d(dbg, "Click chipSemana (ya aquí)")
+            // no navega
         }
         chipDia.setOnClickListener {
+            Log.d(dbg, "Click chipDia -> Dia")
             startActivity(Intent(this, DiaActivity::class.java))
         }
     }

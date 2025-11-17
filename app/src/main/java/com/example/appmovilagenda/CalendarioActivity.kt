@@ -4,10 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.CalendarView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import com.google.android.material.navigation.NavigationView
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 class CalendarioActivity : AppCompatActivity() {
 
@@ -56,6 +60,19 @@ class CalendarioActivity : AppCompatActivity() {
         }
         chipDia.setOnClickListener {
             startActivity(Intent(this, DiaActivity::class.java))
+        }
+
+        // Al tocar una fecha del calendario, abre Día con esa fecha
+        val calendarView = findViewById<CalendarView>(R.id.calendarView)
+        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
+            val c = Calendar.getInstance()
+            c.set(year, month, dayOfMonth, 0, 0, 0)
+            val fechaStr = sdf.format(c.time)
+            startActivity(
+                Intent(this, DiaActivity::class.java)
+                    .putExtra(DiaActivity.EXTRA_FECHA, fechaStr)
+            )
         }
     }
 

@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -20,6 +21,9 @@ class CrearTareaActivity : AppCompatActivity() {
         const val EXTRA_FECHA = "extra_fecha"
         const val EXTRA_HORA = "extra_hora"
         const val EXTRA_RECORDATORIO_MILLIS = "extra_recordatorio_millis"
+
+        private const val MARGEN_TEST_MS = 30_000L // permitir pruebas cercanas (+30s)
+        private const val DOS_DIAS_MS = 2L * 24 * 60 * 60 * 1000
     }
 
     private val formatoFecha = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
@@ -35,19 +39,20 @@ class CrearTareaActivity : AppCompatActivity() {
         val edtDescripcion = findViewById<TextInputEditText>(R.id.edtDescripcion)
         val edtFecha = findViewById<TextInputEditText>(R.id.edtFecha)
         val edtHora = findViewById<TextInputEditText>(R.id.edtHora)
-        val edtRecFecha = findViewById<TextInputEditText>(R.id.edtRecordatorioFecha)
-        val edtRecHora = findViewById<TextInputEditText>(R.id.edtRecordatorioHora)
         val btnAgregar = findViewById<MaterialButton>(R.id.btnAgregar)
 
+        // Fecha entrega
         edtFecha.setOnClickListener {
             val cal = Calendar.getInstance()
             DatePickerDialog(this, { _, y, m, d ->
                 val c = Calendar.getInstance()
                 c.set(y, m, d, 0, 0, 0)
+                c.set(Calendar.MILLISECOND, 0)
                 edtFecha.setText(formatoFecha.format(c.time))
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
         }
 
+        // Hora entrega
         edtHora.setOnClickListener {
             val cal = Calendar.getInstance()
             TimePickerDialog(this, { _, h, min ->
@@ -57,85 +62,124 @@ class CrearTareaActivity : AppCompatActivity() {
             }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
         }
 
-        edtRecFecha.setOnClickListener {
-            val cal = Calendar.getInstance()
-            DatePickerDialog(this, { _, y, m, d ->
-                val c = Calendar.getInstance()
-                c.set(y, m, d, 0, 0, 0)
-                edtRecFecha.setText(formatoFecha.format(c.time))
-                // Recalcular recordatorioMillis si ya hay hora
-                val horaTxt = edtRecHora.text?.toString().orEmpty()
-                if (horaTxt.isNotBlank()) {
-                    setRecordatorioMillis(edtRecFecha.text.toString(), horaTxt)
-                }
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
-        }
-
-        edtRecHora.setOnClickListener {
-            val cal = Calendar.getInstance()
-            TimePickerDialog(this, { _, h, min ->
-                cal.set(Calendar.HOUR_OF_DAY, h)
-                cal.set(Calendar.MINUTE, min)
-                edtRecHora.setText(formatoHora.format(cal.time))
-                val fechaTxt = edtRecFecha.text?.toString().orEmpty()
-                if (fechaTxt.isNotBlank()) {
-                    setRecordatorioMillis(fechaTxt, edtRecHora.text.toString())
-                }
-            }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), true).show()
-        }
-
         btnAgregar.setOnClickListener {
             val titulo = edtTitulo.text?.toString()?.trim().orEmpty()
             val descripcion = edtDescripcion.text?.toString()?.trim().orEmpty()
             val fecha = edtFecha.text?.toString()?.trim().orEmpty()
             val hora = edtHora.text?.toString()?.trim().orEmpty()
-            val recFecha = edtRecFecha.text?.toString()?.trim().orEmpty()
-            val recHora = edtRecHora.text?.toString()?.trim().orEmpty()
 
             if (titulo.isBlank()) {
-                Toast.makeText(this, "Título obligatorio", Toast.LENGTH_SHORT).show(); return@setOnClickListener
+                toast("Título obligatorio"); return@setOnClickListener
+            }
+            if (fecha.isBlank()) {
+                toast("Debes elegir la fecha de entrega"); return@setOnClickListener
             }
 
-            // Si el usuario puso recordatorio fecha y hora pero no se calculó, lo calculamos
-            if (recFecha.isNotBlank() && recHora.isNotBlank() && recordatorioMillis == null) {
-                setRecordatorioMillis(recFecha, recHora)
+            val dueMillis = parseDueMillis(fecha, hora)
+            if (dueMillis == null) {
+                toast("Fecha u hora de entrega inválida"); return@setOnClickListener
             }
 
-            // Validar que el recordatorio sea futuro si existe
-            recordatorioMillis?.let {
-                if (it <= System.currentTimeMillis()) {
-                    Toast.makeText(this, "El recordatorio debe ser a futuro", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+            // Pop-up para recordatorio
+            showReminderChoiceDialog(dueMillis) { recMsOrNull ->
+                recordatorioMillis = recMsOrNull
+
+                // Validaciones si hay recordatorio
+                recordatorioMillis?.let { recMs ->
+                    val now = System.currentTimeMillis()
+                    if (recMs < now + MARGEN_TEST_MS) {
+                        toast("El recordatorio debe ser al menos 30 segundos en el futuro")
+                        return@showReminderChoiceDialog
+                    }
+                    if (recMs >= dueMillis) {
+                        toast("El recordatorio debe ser antes de la entrega")
+                        return@showReminderChoiceDialog
+                    }
                 }
-            }
 
-            intent.putExtra(EXTRA_TITULO, titulo)
-            intent.putExtra(EXTRA_DESCRIPCION, descripcion)
-            intent.putExtra(EXTRA_FECHA, fecha)
-            intent.putExtra(EXTRA_HORA, hora)
-            intent.putExtra(EXTRA_RECORDATORIO_MILLIS, recordatorioMillis ?: -1L)
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+                // Devolver a InicioTareasActivity; allí ya programas la notificación
+                intent.putExtra(EXTRA_TITULO, titulo)
+                intent.putExtra(EXTRA_DESCRIPCION, descripcion)
+                intent.putExtra(EXTRA_FECHA, fecha)
+                intent.putExtra(EXTRA_HORA, hora)
+                intent.putExtra(EXTRA_RECORDATORIO_MILLIS, recordatorioMillis ?: -1L)
+                setResult(Activity.RESULT_OK, intent)
+                finish()
+            }
         }
     }
 
-    private fun setRecordatorioMillis(fechaTxt: String, horaTxt: String) {
-        try {
-            val partesFecha = fechaTxt.split("-")
-            val partesHora = horaTxt.split(":")
-            if (partesFecha.size == 3 && partesHora.size == 2) {
-                val d = partesFecha[0].toInt()
-                val m = partesFecha[1].toInt() - 1
-                val y = partesFecha[2].toInt()
-                val h = partesHora[0].toInt()
-                val min = partesHora[1].toInt()
-                val cal = Calendar.getInstance()
-                cal.set(y, m, d, h, min, 0)
-                cal.set(Calendar.MILLISECOND, 0)
-                recordatorioMillis = cal.timeInMillis
+    private fun showReminderChoiceDialog(dueMillis: Long, onResult: (Long?) -> Unit) {
+        val opciones = arrayOf(
+            "2 días antes (recomendado)",
+            "Elegir manualmente",
+            "No agregar"
+        )
+        MaterialAlertDialogBuilder(this)
+            .setTitle("¿Deseas agregar un recordatorio?")
+            .setItems(opciones) { dialog, idx ->
+                when (idx) {
+                    0 -> { // 2 días antes
+                        val candidato = dueMillis - DOS_DIAS_MS
+                        val now = System.currentTimeMillis()
+                        if (candidato <= now + MARGEN_TEST_MS) {
+                            // Entrega demasiado próxima: pedir manual
+                            toast("La entrega está muy próxima para recordar 2 días antes. Elige hora manual.")
+                            pickManualReminder(dueMillis) { onResult(it) }
+                        } else {
+                            onResult(candidato)
+                        }
+                    }
+                    1 -> { // manual
+                        pickManualReminder(dueMillis) { onResult(it) }
+                    }
+                    else -> { // sin recordatorio
+                        onResult(null)
+                    }
+                }
+                dialog.dismiss()
             }
-        } catch (_: Exception) {
-            recordatorioMillis = null
-        }
+            .setCancelable(true)
+            .show()
     }
+
+    private fun pickManualReminder(dueMillis: Long, onPicked: (Long?) -> Unit) {
+        // Sugerencia por defecto: min(due-2d, now+1h), pero siempre futuro
+        val now = System.currentTimeMillis()
+        var sugerido = dueMillis - DOS_DIAS_MS
+        val unaHoraDespues = now + 60 * 60 * 1000
+        if (sugerido < unaHoraDespues) sugerido = unaHoraDespues
+
+        val def = Calendar.getInstance().apply { timeInMillis = sugerido }
+
+        DatePickerDialog(this, { _, y, m, d ->
+            TimePickerDialog(this, { _, h, min ->
+                val cal = Calendar.getInstance().apply {
+                    set(y, m, d, h, min, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                onPicked(cal.timeInMillis)
+            }, def.get(Calendar.HOUR_OF_DAY), def.get(Calendar.MINUTE), true).show()
+        }, def.get(Calendar.YEAR), def.get(Calendar.MONTH), def.get(Calendar.DAY_OF_MONTH)).show()
+    }
+
+    // Si no hay hora, asumimos 23:59 del mismo día
+    private fun parseDueMillis(fechaTxt: String, horaTxt: String?): Long? {
+        return try {
+            val pf = fechaTxt.split("-")
+            val d = pf[0].toInt()
+            val m = pf[1].toInt() - 1
+            val y = pf[2].toInt()
+            val cal = Calendar.getInstance()
+            if (horaTxt.isNullOrBlank()) cal.set(y, m, d, 23, 59, 0)
+            else {
+                val ph = horaTxt.split(":")
+                cal.set(y, m, d, ph[0].toInt(), ph[1].toInt(), 0)
+            }
+            cal.set(Calendar.MILLISECOND, 0)
+            cal.timeInMillis
+        } catch (_: Exception) { null }
+    }
+
+    private fun toast(msg: String) = Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
 }
