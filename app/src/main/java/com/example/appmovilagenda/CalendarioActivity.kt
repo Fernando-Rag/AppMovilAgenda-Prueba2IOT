@@ -12,7 +12,6 @@ import com.google.android.material.navigation.NavigationView
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
-import kotlin.math.abs
 
 class CalendarioActivity : BaseActivity() {
 
@@ -25,17 +24,12 @@ class CalendarioActivity : BaseActivity() {
     private lateinit var chipDia: TextView
 
     private lateinit var calendarView: CalendarView
-    private lateinit var tvMes: TextView
-    private lateinit var btnPrevMes: TextView
-    private lateinit var btnNextMes: TextView
 
     private val localeCL = Locale("es", "CL")
     private val sdfDia = SimpleDateFormat("dd-MM-yyyy", localeCL)
-    private val sdfMes = SimpleDateFormat("LLLL 'de' yyyy", localeCL)
 
-    // Mes mostrado en el header (primer día del mes)
+    // Fecha base para posicionar el calendario al abrir
     private val calMes: Calendar = Calendar.getInstance(localeCL).apply {
-        set(Calendar.DAY_OF_MONTH, 1)
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
         set(Calendar.SECOND, 0)
@@ -54,7 +48,7 @@ class CalendarioActivity : BaseActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
-                R.id.nav_calendario -> { /* ya aquí */ }
+                R.id.nav_calendario -> { /* actual */ }
                 R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
                 R.id.nav_dia -> startActivity(Intent(this, DiaActivity::class.java))
             }
@@ -74,86 +68,35 @@ class CalendarioActivity : BaseActivity() {
         chipDia.setOnClickListener { startActivity(Intent(this, DiaActivity::class.java)) }
 
         calendarView = findViewById(R.id.calendarView)
-        tvMes = findViewById(R.id.tvMes)
-        btnPrevMes = findViewById(R.id.btnPrevMes)
-        btnNextMes = findViewById(R.id.btnNextMes)
 
-        // Inicializa header y mueve el calendario al mes del header
-        actualizarHeaderMes()
+        // Posiciona el calendario en la fecha actual (o la que prefieras)
         calendarView.date = calMes.timeInMillis
 
-        btnPrevMes.setOnClickListener {
-            calMes.add(Calendar.MONTH, -1)
-            actualizarHeaderMes()
-            calendarView.date = calMes.timeInMillis
-        }
-        btnNextMes.setOnClickListener {
-            calMes.add(Calendar.MONTH, 1)
-            actualizarHeaderMes()
-            calendarView.date = calMes.timeInMillis
-        }
-
-        // Selección de día -> abre Día y sincroniza header si cambió el mes
+        // Selección de día -> abre Día
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val c = Calendar.getInstance(localeCL).apply { set(year, month, dayOfMonth, 0, 0, 0) }
-            if (year != calMes.get(Calendar.YEAR) || month != calMes.get(Calendar.MONTH)) {
-                calMes.set(Calendar.YEAR, year)
-                calMes.set(Calendar.MONTH, month)
-                calMes.set(Calendar.DAY_OF_MONTH, 1)
-                actualizarHeaderMes()
-            }
             val fechaStr = sdfDia.format(c.time)
             startActivity(Intent(this, DiaActivity::class.java).putExtra(DiaActivity.EXTRA_FECHA, fechaStr))
         }
 
-        // Sincronizar header cuando el usuario DESLIZA el CalendarView
-        instalarSyncSwipeConHeader()
+        // Bloquear swipe vertical (cambio de mes por gesto) PERO permitir taps y flechas del header nativo
+        bloquearSwipePeroPermitirTap()
     }
 
-    private fun instalarSyncSwipeConHeader() {
-        // Umbral de desplazamiento para considerar que cambió de mes
-        val thresholdPx = (80f * resources.displayMetrics.density)
-        var startY = 0f
-        var acumuladoY = 0f
-        var tracking = false
-
-        calendarView.setOnTouchListener { _, ev ->
+    private fun bloquearSwipePeroPermitirTap() {
+        calendarView.setOnTouchListener { v, ev ->
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
-                    startY = ev.y
-                    acumuladoY = 0f
-                    tracking = true
+                    v.parent?.requestDisallowInterceptTouchEvent(true)
+                    false // deja pasar DOWN (tap)
                 }
-                MotionEvent.ACTION_MOVE -> {
-                    if (tracking) {
-                        val dy = ev.y - startY
-                        acumuladoY = dy
-                    }
-                }
+                MotionEvent.ACTION_MOVE -> true // bloquea swipe
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                    if (tracking) {
-                        val dy = acumuladoY
-                        if (abs(dy) > thresholdPx) {
-                            // Nota: en CalendarView el scroll vertical suele ser:
-                            // deslizar hacia arriba -> siguiente mes (incrementa)
-                            // deslizar hacia abajo -> mes anterior (decrementa)
-                            if (dy < 0) {
-                                calMes.add(Calendar.MONTH, 1)
-                            } else {
-                                calMes.add(Calendar.MONTH, -1)
-                            }
-                            actualizarHeaderMes()
-                            // Ajustamos la fecha del CalendarView para mantener ambas vistas sincronizadas
-                            calendarView.date = calMes.timeInMillis
-                        }
-                    }
-                    tracking = false
-                    startY = 0f
-                    acumuladoY = 0f
+                    v.parent?.requestDisallowInterceptTouchEvent(false)
+                    false // deja pasar UP (selección y flechas nativas)
                 }
+                else -> false
             }
-            // Devolvemos false para que el CalendarView siga recibiendo el gesto y haga su animación
-            false
         }
     }
 
@@ -173,10 +116,5 @@ class CalendarioActivity : BaseActivity() {
             view.setBackgroundResource(R.drawable.chip_green)
             view.setTextColor(0xFF1F4226.toInt())
         }
-    }
-
-    private fun actualizarHeaderMes() {
-        val txt = sdfMes.format(calMes.time).replaceFirstChar { it.titlecase(localeCL) }
-        tvMes.text = txt
     }
 }

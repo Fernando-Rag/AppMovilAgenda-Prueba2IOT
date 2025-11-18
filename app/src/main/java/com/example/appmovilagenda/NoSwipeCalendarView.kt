@@ -6,8 +6,7 @@ import android.view.MotionEvent
 import android.widget.CalendarView
 
 /**
- * CalendarView que bloquea el gesto de desplazamiento (swipe) para cambiar de mes,
- * pero permite taps para seleccionar días.
+ * Bloquea el swipe (cambio de mes por gesto) y permite taps para seleccionar días.
  */
 class NoSwipeCalendarView @JvmOverloads constructor(
     context: Context,
@@ -16,23 +15,27 @@ class NoSwipeCalendarView @JvmOverloads constructor(
 ) : CalendarView(context, attrs, defStyleAttr) {
 
     override fun onInterceptTouchEvent(ev: MotionEvent): Boolean {
-        // Intercepta SOLO el movimiento para bloquear el swipe
-        return ev.actionMasked == MotionEvent.ACTION_MOVE
+        // No interceptes DOWN/UP para que el tap llegue al manejador interno.
+        // Solo deja que onTouchEvent consuma los MOVE.
+        return false
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {
-                // Evitar que el padre (ScrollView) intercepte; dejamos pasar DOWN
+                // Evita que el ScrollView padre intercepte este gesto.
                 parent?.requestDisallowInterceptTouchEvent(true)
+                // Deja que CalendarView maneje el DOWN (necesario para seleccionar).
                 return super.onTouchEvent(event)
             }
             MotionEvent.ACTION_MOVE -> {
-                // Consumimos MOVE para que no cambie de mes por gesto
+                // Mantén bloqueado al padre y consume el MOVE para impedir el swipe de mes.
+                parent?.requestDisallowInterceptTouchEvent(true)
                 return true
             }
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                // Dejamos pasar UP/CANCEL para que funcione el tap en días
+                // Permite que CalendarView procese la selección al levantar el dedo.
+                parent?.requestDisallowInterceptTouchEvent(false)
                 return super.onTouchEvent(event)
             }
             else -> return super.onTouchEvent(event)

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- Botón hamburguesa (igual a otras pestañas) -->
+    <!-- Botón hamburguesa -->
     <ImageView
         android:id="@+id/btnMenu"
         android:layout_width="32dp"
@@ -36,7 +36,7 @@
             android:orientation="vertical"
             android:padding="20dp">
 
-            <!-- Título grande -->
+            <!-- Título -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -55,7 +55,7 @@
                     android:paddingHorizontal="16dp"/>
             </LinearLayout>
 
-            <!-- Chips MES / Semana / Dia -->
+            <!-- Chips MES / Semana / Día -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -100,67 +100,15 @@
                     android:background="@drawable/chip_green"/>
             </LinearLayout>
 
-            <!-- Header propio del mes (oscuro) -->
-            <LinearLayout
-                android:id="@+id/rowMes"
+
+            <!-- CalendarView sin swipe -->
+            <com.example.appmovilagenda.NoSwipeCalendarView
+                android:id="@+id/calendarView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
-
-                <TextView
-                    android:id="@+id/btnPrevMes"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="◀"
-                    android:textSize="22sp"
-                    android:textColor="#1F4226"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="6dp"/>
-
-                <TextView
-                    android:id="@+id/tvMes"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Noviembre de 2025"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:textColor="#1F4226"
-                    android:paddingHorizontal="8dp"/>
-
-                <TextView
-                    android:id="@+id/btnNextMes"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="▶"
-                    android:textSize="22sp"
-                    android:textColor="#1F4226"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="6dp"/>
-            </LinearLayout>
-
-            <!-- CalendarView personalizado sin swipe + tapa del header interno -->
-            <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-
-                <com.example.appmovilagenda.NoSwipeCalendarView
-                    android:id="@+id/calendarView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:dateTextAppearance="@style/CalDateText"
-                    android:weekDayTextAppearance="@style/CalWeekDayText"
-                    android:showWeekNumber="false"/>
-
-                <!-- Tapa para ocultar el header interno del CalendarView -->
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="64dp"
-                    android:background="#FFFFFF"
-                    android:clickable="false"
-                    android:focusable="false"/>
-            </FrameLayout>
+                android:dateTextAppearance="@style/CalDateText"
+                android:weekDayTextAppearance="@style/CalWeekDayText"
+                android:showWeekNumber="false"/>
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
