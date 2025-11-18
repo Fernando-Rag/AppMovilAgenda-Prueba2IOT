@@ -6,7 +6,21 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
-    <!-- Título alineado como en Calendario -->
+    <!-- Hamburguesa: EXACTO como Calendario -->
+    <ImageView
+        android:id="@+id/btnMenu"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:padding="4dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="@string/nav_open"
+        app:srcCompat="@drawable/ic_menu_24"
+        app:tint="#3F6B45"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Título -->
     <TextView
         android:id="@+id/tvTituloTareasDia"
         android:layout_width="wrap_content"
@@ -15,12 +29,12 @@
         android:textStyle="bold"
         android:textSize="@dimen/title_text_size"
         android:textColor="#1F4226"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginTop="@dimen/calendar_title_top_offset"
+        app:layout_constraintTop_toBottomOf="@id/btnMenu"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
 
-    <!-- Chips iguales a Calendario -->
+    <!-- Chips -->
     <LinearLayout
         android:id="@+id/rowChipsDia"
         android:layout_width="0dp"
@@ -45,9 +59,7 @@
             android:textColor="#1F4226"
             android:background="@drawable/chip_green"/>
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="1dp"/>
+        <Space android:layout_width="12dp" android:layout_height="1dp"/>
 
         <TextView
             android:id="@+id/chipSemana"
@@ -59,9 +71,7 @@
             android:textColor="#1F4226"
             android:background="@drawable/chip_green"/>
 
-        <Space
-            android:layout_width="12dp"
-            android:layout_height="1dp"/>
+        <Space android:layout_width="12dp" android:layout_height="1dp"/>
 
         <TextView
             android:id="@+id/chipDia"
@@ -75,7 +85,7 @@
             android:background="@drawable/chip_brown"/>
     </LinearLayout>
 
-    <!-- Lista de tareas del día -->
+    <!-- Lista -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerTareasDia"
         android:layout_width="0dp"

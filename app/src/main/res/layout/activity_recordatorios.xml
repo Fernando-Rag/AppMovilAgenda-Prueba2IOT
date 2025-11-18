@@ -6,25 +6,38 @@
     android:layout_height="match_parent"
     android:background="#FFFFFF">
 
+    <!-- Hamburguesa idéntica -->
+    <ImageView
+        android:id="@+id/btnMenu"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:padding="4dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="@string/nav_open"
+        app:srcCompat="@drawable/ic_menu_24"
+        app:tint="#3F6B45"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
-        android:id="@+id/tvTitle"
+        android:id="@+id/tituloRecordatorios"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Recordatorios"
         android:textStyle="bold"
-        android:textSize="32sp"
+        android:textSize="@dimen/title_text_size"
         android:textColor="#1F4226"
-        android:layout_marginTop="72dp"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnMenu"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerRecordatorios"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="20dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/tituloRecordatorios"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>

@@ -1,111 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- CONTENIDO -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#FFFFFF">
+    <!-- Igual que Calendario: incluimos el contenido -->
+    <include layout="@layout/activity_dia"/>
 
-        <!-- Botón hamburguesa -->
-        <ImageView
-            android:id="@+id/btnMenu"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_menu_24"
-            android:contentDescription="@string/nav_open"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="@dimen/screen_padding"
-            android:layout_marginTop="@dimen/calendar_title_top_offset"/>
-
-        <!-- Título -->
-        <TextView
-            android:id="@+id/tvTituloTareasDia"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tareas del Día"
-            android:textStyle="bold"
-            android:textSize="@dimen/title_text_size"
-            android:textColor="#1F4226"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="@dimen/calendar_title_top_offset"/>
-
-        <!-- Chips -->
-        <LinearLayout
-            android:id="@+id/rowChipsDia"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:layout_marginTop="12dp"
-            android:weightSum="3"
-            app:layout_constraintTop_toBottomOf="@id/tvTituloTareasDia"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginStart="@dimen/screen_padding"
-            android:layout_marginEnd="@dimen/screen_padding">
-
-            <TextView
-                android:id="@+id/chipMes"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="MES"
-                android:textColor="#1F4226"
-                android:background="@drawable/chip_green"/>
-
-            <Space android:layout_width="12dp" android:layout_height="1dp"/>
-
-            <TextView
-                android:id="@+id/chipSemana"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Semana"
-                android:textColor="#1F4226"
-                android:background="@drawable/chip_green"/>
-
-            <Space android:layout_width="12dp" android:layout_height="1dp"/>
-
-            <TextView
-                android:id="@+id/chipDia"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="Dia"
-                android:textStyle="bold"
-                android:textColor="#6B4E2E"
-                android:background="@drawable/chip_brown"/>
-        </LinearLayout>
-
-        <!-- Lista -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerTareasDia"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:padding="20dp"
-            app:layout_constraintTop_toBottomOf="@id/rowChipsDia"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- NAV -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navView"
-        android:layout_width="wrap_content"
+        android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        app:headerLayout="@layout/drawer_header"
-        app:menu="@menu/drawer_menu"/>
+        android:background="#3F6B45"
+        app:itemTextColor="@android:color/white"
+        app:itemIconTint="@android:color/white"
+        app:menu="@menu/drawer_menu"
+        app:headerLayout="@layout/drawer_header"/>
 </androidx.drawerlayout.widget.DrawerLayout>
