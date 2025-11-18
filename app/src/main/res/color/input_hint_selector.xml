@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Verde cuando el campo está enfocado -->
+    <item android:state_focused="true" android:color="@color/green_primary" />
+    <!-- Verde también cuando no está enfocado (si lo quieres gris en reposo, cambia por @color/hint_grey_dark) -->
+    <item android:color="@color/green_primary" />
+</selector>

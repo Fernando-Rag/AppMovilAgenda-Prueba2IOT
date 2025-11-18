@@ -6,4 +6,8 @@
     <color name="grey_outline">#DDDDDD</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Agrega estos dos: -->
+    <color name="green_text">#1F4226</color>
+    <color name="hint_grey_dark">#6D6F73</color>
 </resources>

@@ -2,9 +2,13 @@ package com.example.appmovilagenda
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -32,11 +36,14 @@ class DiaActivity : BaseActivity() {
     private lateinit var recycler: RecyclerView
     private lateinit var adapter: TareaAdapter
 
+    // Label de estado vacío (centrado)
+    private var emptyView: TextView? = null
+
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val db by lazy { FirebaseFirestore.getInstance() }
     private var listener: ListenerRegistration? = null
 
-    private val sdf = SimpleDateFormat("dd-MM-yyyy", Locale("es", "CL"))
+    private val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.forLanguageTag("es-CL"))
     private lateinit var fechaSeleccionada: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,21 +95,28 @@ class DiaActivity : BaseActivity() {
             startActivity(intent)
         }
         recycler.adapter = adapter
+
+        // Inserta el label vacío centrado en el mismo contenedor del recycler
+        attachEmptyLabel()
+        showEmptyState(true, "Cargando tareas…")
     }
 
     override fun onStart() {
         super.onStart()
         val uid = auth.currentUser?.uid
         if (uid == null) {
-            Toast.makeText(this, "Inicia sesión para ver tus tareas", Toast.LENGTH_SHORT).show()
-            adapter.actualizarLista(emptyList()); return
+            showEmptyState(true, "Inicia sesión para ver tus tareas")
+            adapter.actualizarLista(emptyList())
+            return
         }
 
+        listener?.remove()
         listener = db.collection("todos")
             .whereEqualTo("userId", uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_LONG).show()
+                    showEmptyState(true, "Error al cargar tareas")
+                    adapter.actualizarLista(emptyList())
                     return@addSnapshotListener
                 }
                 val delDia = snapshot?.documents?.map { doc ->
@@ -120,10 +134,18 @@ class DiaActivity : BaseActivity() {
                     .sortedWith(compareBy({ parseHoraMin(it.hora) }, { it.titulo }))
 
                 adapter.actualizarLista(delDia)
+                if (delDia.isEmpty()) {
+                    showEmptyState(true, "No hay registro de ninguna tarea para este día.\nAgrega una con el botón +")
+                } else {
+                    showEmptyState(false)
+                }
             }
     }
 
-    override fun onStop() { super.onStop(); listener?.remove(); listener = null }
+    override fun onStop() {
+        super.onStop()
+        listener?.remove(); listener = null
+    }
 
     private fun setupDrawerHeaderClose() {
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
@@ -144,4 +166,64 @@ class DiaActivity : BaseActivity() {
             h*60 + m
         }
     } catch (_: Exception) { 24*60 }
+
+    // ---- Estado vacío centrado ----
+
+    private fun attachEmptyLabel() {
+        val parent = recycler.parent as? ViewGroup ?: return
+
+        // Evita duplicarlo si ya existe
+        emptyView = parent.findViewWithTag("empty_day_label") as? TextView
+        if (emptyView != null) return
+
+        val label = TextView(this).apply {
+            tag = "empty_day_label"
+            text = "No hay registro de ninguna tarea para este día.\nAgrega una con el botón +"
+            setTextColor(0xFF9AA0A6.toInt()) // gris
+            textSize = 16f
+            gravity = Gravity.CENTER
+            textAlignment = View.TEXT_ALIGNMENT_CENTER
+            visibility = View.GONE
+        }
+
+        val lp: ViewGroup.LayoutParams = when (parent) {
+            is ConstraintLayout -> {
+                if (parent.id == View.NO_ID) parent.id = View.generateViewId()
+                ConstraintLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topToTop = ConstraintLayout.LayoutParams.PARENT_ID
+                    bottomToBottom = ConstraintLayout.LayoutParams.PARENT_ID
+                    startToStart = ConstraintLayout.LayoutParams.PARENT_ID
+                    endToEnd = ConstraintLayout.LayoutParams.PARENT_ID
+                }
+            }
+            is LinearLayout -> {
+                val params = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+                params.gravity = Gravity.CENTER
+                params
+            }
+            else -> {
+                ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+        }
+
+        parent.addView(label, lp)
+        emptyView = label
+    }
+
+    private fun showEmptyState(show: Boolean, message: String? = null) {
+        emptyView?.let { tv ->
+            if (message != null) tv.text = message
+            tv.visibility = if (show) View.VISIBLE else View.GONE
+        }
+        recycler.visibility = if (show) View.GONE else View.VISIBLE
+    }
 }

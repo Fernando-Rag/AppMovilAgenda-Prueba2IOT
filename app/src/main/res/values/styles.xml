@@ -1,0 +1,30 @@
+<resources>
+    <!-- TextInputLayout con contorno verde (Material3) -->
+    <style name="Widget.App.TextInputLayout.OutlinedGreen" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <!-- Contorno -->
+        <item name="boxStrokeColor">@color/green_primary</item>
+        <item name="boxStrokeWidth">2dp</item>
+        <item name="boxStrokeWidthFocused">3dp</item>
+
+        <!-- Color del "título flotante" (etiqueta de la caja) -->
+        <item name="hintTextColor">@color/input_hint_selector</item>
+        <!-- Tamaño/estilo del título flotante -->
+        <item name="hintTextAppearance">@style/TextAppearance.App.TextInputLayout.Hint</item>
+
+        <!-- Opcional: fondo del campo blanco -->
+        <!-- <item name="boxBackgroundColor">@color/white</item> -->
+    </style>
+
+    <!-- Apariencia del "título flotante" -->
+    <style name="TextAppearance.App.TextInputLayout.Hint" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textColor">@color/green_primary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- EditText con texto negro y hint gris más oscuro (Material3) -->
+    <style name="Widget.App.TextInputEditText.Green" parent="Widget.Material3.TextInputEditText.OutlinedBox">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textColorHint">@color/hint_grey_dark</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+</resources>
