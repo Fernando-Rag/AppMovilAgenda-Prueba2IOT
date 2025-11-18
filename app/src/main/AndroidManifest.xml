@@ -37,8 +37,5 @@
         <activity android:name=".SemanaActivity" />
         <activity android:name=".DiaActivity" />
 
-        <receiver
-            android:name=".RecordatorioReceiver"
-            android:exported="false" />
     </application>
 </manifest>

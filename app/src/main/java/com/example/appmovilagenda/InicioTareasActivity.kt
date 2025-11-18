@@ -2,13 +2,11 @@ package com.example.appmovilagenda
 
 import android.app.Activity
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -47,7 +45,6 @@ class InicioTareasActivity : AppCompatActivity() {
             val descripcion = data.getStringExtra(CrearTareaActivity.EXTRA_DESCRIPCION).orEmpty()
             val fecha = data.getStringExtra(CrearTareaActivity.EXTRA_FECHA).orEmpty()
             val hora = data.getStringExtra(CrearTareaActivity.EXTRA_HORA).orEmpty()
-            val recordatorioMillis = data.getLongExtra(CrearTareaActivity.EXTRA_RECORDATORIO_MILLIS, -1L)
 
             if (titulo.isBlank()) {
                 Toast.makeText(this, "El título es obligatorio", Toast.LENGTH_SHORT).show()
@@ -65,17 +62,14 @@ class InicioTareasActivity : AppCompatActivity() {
                 "descripcion" to descripcion,
                 "fecha" to fecha,
                 "hora" to hora,
-                "recordatorioMillis" to if (recordatorioMillis > 0) recordatorioMillis else null,
                 "userId" to uid,
                 "createdAt" to FieldValue.serverTimestamp()
             )
 
             db.collection("todos")
                 .add(doc)
-                .addOnSuccessListener { ref ->
-                    if (recordatorioMillis > System.currentTimeMillis()) {
-                        RecordatorioHelper.programar(this, ref.id, titulo, recordatorioMillis)
-                    }
+                .addOnSuccessListener {
+                    // Sin recordatorios
                 }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
@@ -86,9 +80,6 @@ class InicioTareasActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_inicio_tareas_drawer)
 
-        NotificationHelper.createChannel(this)
-        pedirPermisoNotificaciones()
-
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navView)
         btnMenu = findViewById(R.id.btnMenu)
@@ -97,7 +88,6 @@ class InicioTareasActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_tareas -> {}
-                R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
                 R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
                 R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
                 R.id.nav_dia -> startActivity(Intent(this, DiaActivity::class.java))
@@ -118,7 +108,7 @@ class InicioTareasActivity : AppCompatActivity() {
                 putExtra(EditarTareaActivity.EXTRA_DESCRIPCION, tarea.descripcion)
                 putExtra(EditarTareaActivity.EXTRA_FECHA, tarea.fecha)
                 putExtra(EditarTareaActivity.EXTRA_HORA, tarea.hora)
-                putExtra(EditarTareaActivity.EXTRA_RECORDATORIO_MILLIS, tarea.recordatorioMillis ?: -1L)
+                // Sin extra de recordatorio
             }
             startActivity(intent)
         }
@@ -187,7 +177,7 @@ class InicioTareasActivity : AppCompatActivity() {
                         descripcion = doc.getString("descripcion").orEmpty(),
                         fecha = doc.getString("fecha").orEmpty(),
                         hora = doc.getString("hora").orEmpty(),
-                        recordatorioMillis = doc.getLong("recordatorioMillis"),
+                        // recordatorioMillis ya no se usa; si existiera en docs antiguos, lo ignoramos
                         createdAt = doc.getTimestamp("createdAt"),
                         userId = doc.getString("userId").orEmpty()
                     )
@@ -206,8 +196,7 @@ class InicioTareasActivity : AppCompatActivity() {
         val ref = db.collection("todos").document(tarea.id)
         ref.delete()
             .addOnSuccessListener {
-                RecordatorioHelper.cancelar(this, tarea.id)
-
+                // Sin cancelar recordatorios
                 Snackbar.make(recyclerView, "Tarea eliminada", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") {
                         val uid = auth.currentUser?.uid ?: return@setAction
@@ -216,18 +205,13 @@ class InicioTareasActivity : AppCompatActivity() {
                             "descripcion" to tarea.descripcion,
                             "fecha" to tarea.fecha,
                             "hora" to tarea.hora,
-                            "recordatorioMillis" to tarea.recordatorioMillis,
                             "userId" to uid,
                             "createdAt" to FieldValue.serverTimestamp()
                         )
                         db.collection("todos").document(tarea.id)
                             .set(data)
                             .addOnSuccessListener {
-                                tarea.recordatorioMillis?.let { millis ->
-                                    if (millis > System.currentTimeMillis()) {
-                                        RecordatorioHelper.programar(this, tarea.id, tarea.titulo, millis)
-                                    }
-                                }
+                                // Sin reprogramar recordatorios
                             }
                     }
                     .show()
@@ -235,18 +219,5 @@ class InicioTareasActivity : AppCompatActivity() {
             .addOnFailureListener {
                 Toast.makeText(this, "No se pudo eliminar", Toast.LENGTH_SHORT).show()
             }
-    }
-
-    private fun pedirPermisoNotificaciones() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
-                    1001
-                )
-            }
-        }
     }
 }

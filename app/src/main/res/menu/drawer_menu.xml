@@ -6,10 +6,6 @@
             android:title="Tareas"
             android:icon="@android:drawable/ic_menu_agenda"/>
         <item
-            android:id="@+id/nav_recordatorios"
-            android:title="Recordatorios"
-            android:icon="@android:drawable/ic_lock_idle_alarm"/>
-        <item
             android:id="@+id/nav_calendario"
             android:title="Calendario"
             android:icon="@android:drawable/ic_menu_month"/>

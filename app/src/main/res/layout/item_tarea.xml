@@ -26,34 +26,39 @@
             android:layout_height="wrap_content"
             android:text="Título"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:textColor="#1F4226"/>
 
         <TextView
             android:id="@+id/txtDescripcion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Descripción"
-            android:layout_marginTop="4dp"/>
+            android:layout_marginTop="4dp"
+            android:textColor="#333333"/>
 
         <TextView
             android:id="@+id/txtFecha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Fecha:"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:textColor="#333333"/>
 
         <TextView
             android:id="@+id/txtHora"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Hora:"
-            android:layout_marginTop="2dp"/>
+            android:layout_marginTop="2dp"
+            android:textColor="#333333"/>
 
         <TextView
             android:id="@+id/txtRecordatorio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Recordatorio:"
-            android:layout_marginTop="4dp"/>
+            android:layout_marginTop="4dp"
+            android:textColor="#333333"/>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

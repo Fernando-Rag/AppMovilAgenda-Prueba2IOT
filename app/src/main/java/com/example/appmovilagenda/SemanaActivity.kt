@@ -32,7 +32,6 @@ class SemanaActivity : BaseActivity() {
 
     private val auth by lazy { FirebaseAuth.getInstance() }
     private val db by lazy { FirebaseFirestore.getInstance() }
-
     private var tareasListener: ListenerRegistration? = null
 
     private val localeCL = Locale("es", "CL")
@@ -44,7 +43,6 @@ class SemanaActivity : BaseActivity() {
         setContentView(R.layout.activity_semana_drawer)
         title = "Esta Semana"
 
-        // Drawer
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navView)
         btnMenu = findViewById(R.id.btnMenu)
@@ -53,7 +51,6 @@ class SemanaActivity : BaseActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
-                R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
                 R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
                 R.id.nav_semana -> { /* ya aquí */ }
                 R.id.nav_dia -> startActivity(Intent(this, DiaActivity::class.java))
@@ -63,7 +60,6 @@ class SemanaActivity : BaseActivity() {
         }
         setupDrawerHeaderClose()
 
-        // Chips
         chipMes = findViewById(R.id.chipMes)
         chipSemana = findViewById(R.id.chipSemana)
         chipDia = findViewById(R.id.chipDia)
@@ -78,7 +74,6 @@ class SemanaActivity : BaseActivity() {
 
         recyclerSemana = findViewById(R.id.recyclerSemana)
         recyclerSemana.layoutManager = LinearLayoutManager(this)
-
         adapter = TareaAdapter(emptyList()) { tarea ->
             val intent = Intent(this, EditarTareaActivity::class.java).apply {
                 putExtra(EditarTareaActivity.EXTRA_ID, tarea.id)
@@ -86,7 +81,7 @@ class SemanaActivity : BaseActivity() {
                 putExtra(EditarTareaActivity.EXTRA_DESCRIPCION, tarea.descripcion)
                 putExtra(EditarTareaActivity.EXTRA_FECHA, tarea.fecha)
                 putExtra(EditarTareaActivity.EXTRA_HORA, tarea.hora)
-                putExtra(EditarTareaActivity.EXTRA_RECORDATORIO_MILLIS, tarea.recordatorioMillis ?: -1L)
+                // Sin recordatorios
             }
             startActivity(intent)
         }
@@ -98,8 +93,7 @@ class SemanaActivity : BaseActivity() {
         val uid = auth.currentUser?.uid
         if (uid == null) {
             Toast.makeText(this, "Inicia sesión para ver tus tareas", Toast.LENGTH_SHORT).show()
-            adapter.actualizarLista(emptyList())
-            return
+            adapter.actualizarLista(emptyList()); return
         }
 
         val (inicioSemana, finSemana) = obtenerRangoSemanaActual()
@@ -112,7 +106,6 @@ class SemanaActivity : BaseActivity() {
                     Toast.makeText(this, "Error cargando: ${error.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
-
                 val todas = snapshot?.documents?.map { doc ->
                     Tarea(
                         id = doc.id,
@@ -120,7 +113,7 @@ class SemanaActivity : BaseActivity() {
                         descripcion = doc.getString("descripcion").orEmpty(),
                         fecha = doc.getString("fecha").orEmpty(),
                         hora = doc.getString("hora").orEmpty(),
-                        recordatorioMillis = doc.getLong("recordatorioMillis"),
+                        // recordatorioMillis eliminado de uso
                         createdAt = doc.getTimestamp("createdAt"),
                         userId = doc.getString("userId").orEmpty()
                     )
@@ -185,30 +178,20 @@ class SemanaActivity : BaseActivity() {
         return inicio to fin
     }
 
-    private fun parseFechaMillis(fecha: String): Long? {
-        return try {
-            val d = formatoFecha.parse(fecha) ?: return null
-            val cal = Calendar.getInstance(localeCL).apply {
-                time = d
-                set(Calendar.HOUR_OF_DAY, 0)
-                set(Calendar.MINUTE, 0)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            cal.timeInMillis
-        } catch (_: Exception) {
-            null
+    private fun parseFechaMillis(fecha: String) = try {
+        val d = formatoFecha.parse(fecha) ?: return null
+        val cal = Calendar.getInstance(localeCL).apply {
+            time = d; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }
-    }
+        cal.timeInMillis
+    } catch (_: Exception) { null }
 
-    private fun parseHoraMin(hora: String): Int {
-        return try {
-            if (hora.isBlank()) return 24 * 60
-            val h = formatoHora.parse(hora) ?: return 24 * 60
+    private fun parseHoraMin(hora: String): Int = try {
+        if (hora.isBlank()) 24 * 60 else {
+            val h = formatoHora.parse(hora)!!
             val cal = Calendar.getInstance(localeCL).apply { time = h }
             cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
-        } catch (_: Exception) {
-            24 * 60
         }
-    }
+    } catch (_: Exception) { 24 * 60 }
 }

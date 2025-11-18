@@ -19,9 +19,7 @@ import java.util.Locale
 
 class DiaActivity : BaseActivity() {
 
-    companion object {
-        const val EXTRA_FECHA = "extra_fecha_dia" // formato dd-MM-yyyy
-    }
+    companion object { const val EXTRA_FECHA = "extra_fecha_dia" }
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navView: NavigationView
@@ -46,7 +44,6 @@ class DiaActivity : BaseActivity() {
         setContentView(R.layout.activity_dia_drawer)
         title = "Día"
 
-        // Drawer
         drawerLayout = findViewById(R.id.drawerLayout)
         navView = findViewById(R.id.navView)
         btnMenu = findViewById(R.id.btnMenu)
@@ -55,7 +52,6 @@ class DiaActivity : BaseActivity() {
         navView.setNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
-                R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
                 R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
                 R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
                 R.id.nav_dia -> { /* ya aquí */ }
@@ -65,7 +61,6 @@ class DiaActivity : BaseActivity() {
         }
         setupDrawerHeaderClose()
 
-        // Fecha recibida o hoy por defecto
         fechaSeleccionada = intent.getStringExtra(EXTRA_FECHA) ?: sdf.format(Date())
 
         chipMes = findViewById(R.id.chipMes)
@@ -89,7 +84,6 @@ class DiaActivity : BaseActivity() {
                 putExtra(EditarTareaActivity.EXTRA_DESCRIPCION, tarea.descripcion)
                 putExtra(EditarTareaActivity.EXTRA_FECHA, tarea.fecha)
                 putExtra(EditarTareaActivity.EXTRA_HORA, tarea.hora)
-                putExtra(EditarTareaActivity.EXTRA_RECORDATORIO_MILLIS, tarea.recordatorioMillis ?: -1L)
             }
             startActivity(intent)
         }
@@ -101,11 +95,9 @@ class DiaActivity : BaseActivity() {
         val uid = auth.currentUser?.uid
         if (uid == null) {
             Toast.makeText(this, "Inicia sesión para ver tus tareas", Toast.LENGTH_SHORT).show()
-            adapter.actualizarLista(emptyList())
-            return
+            adapter.actualizarLista(emptyList()); return
         }
 
-        // Consulta simple por userId; filtrado por fecha en cliente (evita índice compuesto)
         listener = db.collection("todos")
             .whereEqualTo("userId", uid)
             .addSnapshotListener { snapshot, error ->
@@ -113,20 +105,17 @@ class DiaActivity : BaseActivity() {
                     Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_LONG).show()
                     return@addSnapshotListener
                 }
-                val tareas = snapshot?.documents?.map { doc ->
+                val delDia = snapshot?.documents?.map { doc ->
                     Tarea(
                         id = doc.id,
                         titulo = doc.getString("titulo").orEmpty(),
                         descripcion = doc.getString("descripcion").orEmpty(),
                         fecha = doc.getString("fecha").orEmpty(),
                         hora = doc.getString("hora").orEmpty(),
-                        recordatorioMillis = doc.getLong("recordatorioMillis"),
                         createdAt = doc.getTimestamp("createdAt"),
                         userId = doc.getString("userId").orEmpty()
                     )
                 }.orEmpty()
-
-                val delDia = tareas
                     .filter { it.fecha == fechaSeleccionada }
                     .sortedWith(compareBy({ parseHoraMin(it.hora) }, { it.titulo }))
 
@@ -134,11 +123,7 @@ class DiaActivity : BaseActivity() {
             }
     }
 
-    override fun onStop() {
-        super.onStop()
-        listener?.remove()
-        listener = null
-    }
+    override fun onStop() { super.onStop(); listener?.remove(); listener = null }
 
     private fun setupDrawerHeaderClose() {
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
@@ -149,25 +134,14 @@ class DiaActivity : BaseActivity() {
     }
 
     private fun setChipSelected(view: TextView, selected: Boolean) {
-        if (selected) {
-            view.setBackgroundResource(R.drawable.chip_brown)
-            view.setTextColor(0xFF6B4E2E.toInt())
-        } else {
-            view.setBackgroundResource(R.drawable.chip_green)
-            view.setTextColor(0xFF1F4226.toInt())
-        }
+        if (selected) { view.setBackgroundResource(R.drawable.chip_brown); view.setTextColor(0xFF6B4E2E.toInt()) }
+        else { view.setBackgroundResource(R.drawable.chip_green); view.setTextColor(0xFF1F4226.toInt()) }
     }
 
-    // Convierte "HH:mm" a minutos desde 00:00 para ordenar; si vacío, al final del día
-    private fun parseHoraMin(hora: String): Int {
-        return try {
-            if (hora.isBlank()) return 24 * 60
-            val parts = hora.split(":")
-            val h = parts[0].toInt()
-            val m = parts[1].toInt()
-            h * 60 + m
-        } catch (_: Exception) {
-            24 * 60
+    private fun parseHoraMin(hora: String): Int = try {
+        if (hora.isBlank()) 24 * 60 else {
+            val (h,m) = hora.split(":").map { it.toInt() }
+            h*60 + m
         }
-    }
+    } catch (_: Exception) { 24*60 }
 }
