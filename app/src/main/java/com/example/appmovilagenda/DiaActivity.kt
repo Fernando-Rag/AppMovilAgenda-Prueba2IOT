@@ -2,24 +2,30 @@ package com.example.appmovilagenda
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
-import com.google.firebase.firestore.Query
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class DiaActivity : AppCompatActivity() {
+class DiaActivity : BaseActivity() {
 
     companion object {
         const val EXTRA_FECHA = "extra_fecha_dia" // formato dd-MM-yyyy
     }
+
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navView: NavigationView
+    private lateinit var btnMenu: ImageView
 
     private lateinit var chipMes: TextView
     private lateinit var chipSemana: TextView
@@ -32,17 +38,35 @@ class DiaActivity : AppCompatActivity() {
     private val db by lazy { FirebaseFirestore.getInstance() }
     private var listener: ListenerRegistration? = null
 
-    private val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+    private val sdf = SimpleDateFormat("dd-MM-yyyy", Locale("es", "CL"))
     private lateinit var fechaSeleccionada: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_dia)
+        setContentView(R.layout.activity_dia_drawer)
         title = "Día"
 
+        // Drawer
+        drawerLayout = findViewById(R.id.drawerLayout)
+        navView = findViewById(R.id.navView)
+        btnMenu = findViewById(R.id.btnMenu)
+        btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
+
+        navView.setNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
+                R.id.nav_recordatorios -> startActivity(Intent(this, RecordatoriosActivity::class.java))
+                R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
+                R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
+                R.id.nav_dia -> { /* ya aquí */ }
+            }
+            drawerLayout.closeDrawers()
+            true
+        }
+        setupDrawerHeaderClose()
+
         // Fecha recibida o hoy por defecto
-        fechaSeleccionada = intent.getStringExtra(EXTRA_FECHA)
-            ?: sdf.format(Date())
+        fechaSeleccionada = intent.getStringExtra(EXTRA_FECHA) ?: sdf.format(Date())
 
         chipMes = findViewById(R.id.chipMes)
         chipSemana = findViewById(R.id.chipSemana)
@@ -52,12 +76,8 @@ class DiaActivity : AppCompatActivity() {
         setChipSelected(chipSemana, false)
         setChipSelected(chipDia, true)
 
-        chipMes.setOnClickListener {
-            startActivity(Intent(this, CalendarioActivity::class.java))
-        }
-        chipSemana.setOnClickListener {
-            startActivity(Intent(this, SemanaActivity::class.java))
-        }
+        chipMes.setOnClickListener { startActivity(Intent(this, CalendarioActivity::class.java)) }
+        chipSemana.setOnClickListener { startActivity(Intent(this, SemanaActivity::class.java)) }
         chipDia.setOnClickListener { /* ya aquí */ }
 
         recycler = findViewById(R.id.recyclerTareasDia)
@@ -85,11 +105,9 @@ class DiaActivity : AppCompatActivity() {
             return
         }
 
-        // Solo tareas del usuario y de la fecha seleccionada
+        // Consulta simple por userId; filtrado por fecha en cliente (evita índice compuesto)
         listener = db.collection("todos")
             .whereEqualTo("userId", uid)
-            .whereEqualTo("fecha", fechaSeleccionada)
-            .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Toast.makeText(this, "Error: ${error.message}", Toast.LENGTH_LONG).show()
@@ -107,7 +125,12 @@ class DiaActivity : AppCompatActivity() {
                         userId = doc.getString("userId").orEmpty()
                     )
                 }.orEmpty()
-                adapter.actualizarLista(tareas)
+
+                val delDia = tareas
+                    .filter { it.fecha == fechaSeleccionada }
+                    .sortedWith(compareBy({ parseHoraMin(it.hora) }, { it.titulo }))
+
+                adapter.actualizarLista(delDia)
             }
     }
 
@@ -117,6 +140,14 @@ class DiaActivity : AppCompatActivity() {
         listener = null
     }
 
+    private fun setupDrawerHeaderClose() {
+        val header = if (navView.headerCount > 0) navView.getHeaderView(0)
+        else navView.inflateHeaderView(R.layout.drawer_header)
+        header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+
     private fun setChipSelected(view: TextView, selected: Boolean) {
         if (selected) {
             view.setBackgroundResource(R.drawable.chip_brown)
@@ -124,6 +155,19 @@ class DiaActivity : AppCompatActivity() {
         } else {
             view.setBackgroundResource(R.drawable.chip_green)
             view.setTextColor(0xFF1F4226.toInt())
+        }
+    }
+
+    // Convierte "HH:mm" a minutos desde 00:00 para ordenar; si vacío, al final del día
+    private fun parseHoraMin(hora: String): Int {
+        return try {
+            if (hora.isBlank()) return 24 * 60
+            val parts = hora.split(":")
+            val h = parts[0].toInt()
+            val m = parts[1].toInt()
+            h * 60 + m
+        } catch (_: Exception) {
+            24 * 60
         }
     }
 }

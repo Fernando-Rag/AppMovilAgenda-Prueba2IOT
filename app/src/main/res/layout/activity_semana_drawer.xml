@@ -26,17 +26,63 @@
             android:layout_marginBottom="8dp"/>
 
         <TextView
+            android:id="@+id/tituloSemana"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Recordatorios"
+            android:text="Esta Semana"
             android:textStyle="bold"
             android:textSize="@dimen/title_text_size"
             android:textColor="#1F4226"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="12dp" />
 
+        <!-- Chips -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:weightSum="3">
+
+            <TextView
+                android:id="@+id/chipMes"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="MES"
+                android:textColor="#1F4226"
+                android:background="@drawable/chip_green" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <TextView
+                android:id="@+id/chipSemana"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Semana"
+                android:textStyle="bold"
+                android:textColor="#6B4E2E"
+                android:background="@drawable/chip_brown" />
+
+            <Space android:layout_width="12dp" android:layout_height="1dp" />
+
+            <TextView
+                android:id="@+id/chipDia"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="Dia"
+                android:textColor="#1F4226"
+                android:background="@drawable/chip_green" />
+        </LinearLayout>
+
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerRecordatorios"
+            android:id="@+id/recyclerSemana"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"/>

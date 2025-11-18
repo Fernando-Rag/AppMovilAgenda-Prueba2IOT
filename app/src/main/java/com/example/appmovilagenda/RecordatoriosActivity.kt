@@ -4,16 +4,21 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
+import android.widget.ImageView
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.navigation.NavigationView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
-import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.Calendar
 
-class RecordatoriosActivity : AppCompatActivity() {
+class RecordatoriosActivity : BaseActivity() {
+
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var navView: NavigationView
+    private lateinit var btnMenu: ImageView
 
     private lateinit var recycler: RecyclerView
     private lateinit var adapter: ReminderAdapter
@@ -22,12 +27,29 @@ class RecordatoriosActivity : AppCompatActivity() {
     private val db by lazy { FirebaseFirestore.getInstance() }
     private var listener: ListenerRegistration? = null
 
-    private val sdfRec = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault())
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_recordatorios)
+        setContentView(R.layout.activity_recordatorios_drawer)
         title = "Recordatorios"
+
+        // Drawer
+        drawerLayout = findViewById(R.id.drawerLayout)
+        navView = findViewById(R.id.navView)
+        btnMenu = findViewById(R.id.btnMenu)
+        btnMenu.setOnClickListener { drawerLayout.openDrawer(GravityCompat.START) }
+
+        navView.setNavigationItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.nav_tareas -> startActivity(Intent(this, InicioTareasActivity::class.java))
+                R.id.nav_recordatorios -> { /* ya aquí */ }
+                R.id.nav_calendario -> startActivity(Intent(this, CalendarioActivity::class.java))
+                R.id.nav_semana -> startActivity(Intent(this, SemanaActivity::class.java))
+                R.id.nav_dia -> startActivity(Intent(this, DiaActivity::class.java))
+            }
+            drawerLayout.closeDrawers()
+            true
+        }
+        setupDrawerHeaderClose()
 
         recycler = findViewById(R.id.recyclerRecordatorios)
         recycler.layoutManager = LinearLayoutManager(this)
@@ -44,7 +66,6 @@ class RecordatoriosActivity : AppCompatActivity() {
             return
         }
 
-        // Solo tareas con recordatorioMillis válido, ordenadas por el recordatorio
         listener = db.collection("todos")
             .whereEqualTo("userId", uid)
             .whereGreaterThan("recordatorioMillis", 0)
@@ -74,5 +95,13 @@ class RecordatoriosActivity : AppCompatActivity() {
         super.onStop()
         listener?.remove()
         listener = null
+    }
+
+    private fun setupDrawerHeaderClose() {
+        val header = if (navView.headerCount > 0) navView.getHeaderView(0)
+        else navView.inflateHeaderView(R.layout.drawer_header)
+        header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
     }
 }
