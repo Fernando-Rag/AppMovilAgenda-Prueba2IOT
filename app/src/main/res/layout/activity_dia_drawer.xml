@@ -6,17 +6,26 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Igual que Calendario: incluimos el contenido -->
     <include layout="@layout/activity_dia"/>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navView"
+    <LinearLayout
         android:layout_width="280dp"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:background="#3F6B45"
-        app:itemTextColor="@android:color/white"
-        app:itemIconTint="@android:color/white"
-        app:menu="@menu/drawer_menu"
-        app:headerLayout="@layout/drawer_header"/>
+        android:orientation="vertical"
+        android:background="#3F6B45">
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/navView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            app:itemTextColor="@android:color/white"
+            app:itemIconTint="@android:color/white"
+            app:menu="@menu/drawer_menu"
+            app:headerLayout="@layout/drawer_header"/>
+
+        <include layout="@layout/drawer_footer_logout"/>
+    </LinearLayout>
 </androidx.drawerlayout.widget.DrawerLayout>

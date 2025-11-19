@@ -2,6 +2,7 @@ package com.example.appmovilagenda
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -58,7 +59,7 @@ class SemanaActivity : BaseActivity() {
             drawerLayout.closeDrawers()
             true
         }
-        setupDrawerHeaderClose()
+        setupDrawerViews()
 
         chipMes = findViewById(R.id.chipMes)
         chipSemana = findViewById(R.id.chipSemana)
@@ -81,7 +82,6 @@ class SemanaActivity : BaseActivity() {
                 putExtra(EditarTareaActivity.EXTRA_DESCRIPCION, tarea.descripcion)
                 putExtra(EditarTareaActivity.EXTRA_FECHA, tarea.fecha)
                 putExtra(EditarTareaActivity.EXTRA_HORA, tarea.hora)
-                // Sin recordatorios
             }
             startActivity(intent)
         }
@@ -113,7 +113,6 @@ class SemanaActivity : BaseActivity() {
                         descripcion = doc.getString("descripcion").orEmpty(),
                         fecha = doc.getString("fecha").orEmpty(),
                         hora = doc.getString("hora").orEmpty(),
-                        // recordatorioMillis eliminado de uso
                         createdAt = doc.getTimestamp("createdAt"),
                         userId = doc.getString("userId").orEmpty()
                     )
@@ -137,12 +136,14 @@ class SemanaActivity : BaseActivity() {
         tareasListener = null
     }
 
-    private fun setupDrawerHeaderClose() {
+    private fun setupDrawerViews() {
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
+
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
         }
+        findViewById<View>(R.id.btnLogoutFooter)?.setOnClickListener { performLogout() }
     }
 
     private fun setChipSelected(view: TextView, selected: Boolean) {

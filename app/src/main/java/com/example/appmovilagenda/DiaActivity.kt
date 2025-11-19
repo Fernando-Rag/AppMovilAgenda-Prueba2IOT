@@ -36,7 +36,6 @@ class DiaActivity : BaseActivity() {
     private lateinit var recycler: RecyclerView
     private lateinit var adapter: TareaAdapter
 
-    // Label de estado vacío (centrado)
     private var emptyView: TextView? = null
 
     private val auth by lazy { FirebaseAuth.getInstance() }
@@ -66,7 +65,7 @@ class DiaActivity : BaseActivity() {
             drawerLayout.closeDrawers()
             true
         }
-        setupDrawerHeaderClose()
+        setupDrawerViews()
 
         fechaSeleccionada = intent.getStringExtra(EXTRA_FECHA) ?: sdf.format(Date())
 
@@ -96,7 +95,6 @@ class DiaActivity : BaseActivity() {
         }
         recycler.adapter = adapter
 
-        // Inserta el label vacío centrado en el mismo contenedor del recycler
         attachEmptyLabel()
         showEmptyState(true, "Cargando tareas…")
     }
@@ -147,12 +145,13 @@ class DiaActivity : BaseActivity() {
         listener?.remove(); listener = null
     }
 
-    private fun setupDrawerHeaderClose() {
+    private fun setupDrawerViews() {
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
         }
+        findViewById<View>(R.id.btnLogoutFooter)?.setOnClickListener { performLogout() }
     }
 
     private fun setChipSelected(view: TextView, selected: Boolean) {
@@ -167,19 +166,15 @@ class DiaActivity : BaseActivity() {
         }
     } catch (_: Exception) { 24*60 }
 
-    // ---- Estado vacío centrado ----
-
     private fun attachEmptyLabel() {
         val parent = recycler.parent as? ViewGroup ?: return
-
-        // Evita duplicarlo si ya existe
         emptyView = parent.findViewWithTag("empty_day_label") as? TextView
         if (emptyView != null) return
 
         val label = TextView(this).apply {
             tag = "empty_day_label"
             text = "No hay registro de ninguna tarea para este día.\nAgrega una con el botón +"
-            setTextColor(0xFF9AA0A6.toInt()) // gris
+            setTextColor(0xFF9AA0A6.toInt())
             textSize = 16f
             gravity = Gravity.CENTER
             textAlignment = View.TEXT_ALIGNMENT_CENTER

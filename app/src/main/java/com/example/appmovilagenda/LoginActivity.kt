@@ -32,30 +32,19 @@ class LoginActivity : AppCompatActivity() {
             val email = emailEditText.text.toString().trim()
             val password = passwordEditText.text.toString()
 
-            // Validaciones locales
-            if (email.isEmpty()) {
-                emailEditText.error = "Ingresa tu correo"
-                emailEditText.requestFocus()
-                return@setOnClickListener
-            }
-            if (!isValidEmail(email)) {
-                emailEditText.error = "Correo inválido (usa @gmail.cl, @gmail.com o @hotmail.com)"
-                emailEditText.requestFocus()
-                return@setOnClickListener
-            }
-            if (password.isEmpty()) {
-                passwordEditText.error = "Ingresa tu contraseña"
-                passwordEditText.requestFocus()
-                return@setOnClickListener
-            }
+            if (email.isEmpty()) { emailEditText.error = "Ingresa tu correo"; emailEditText.requestFocus(); return@setOnClickListener }
+            if (!isValidEmail(email)) { emailEditText.error = "Correo inválido (usa @gmail.cl, @gmail.com o @hotmail.com)"; emailEditText.requestFocus(); return@setOnClickListener }
+            if (password.isEmpty()) { passwordEditText.error = "Ingresa tu contraseña"; passwordEditText.requestFocus(); return@setOnClickListener }
 
-            // Evitar múltiples clics
             loginButton.isEnabled = false
 
             auth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     loginButton.isEnabled = true
                     if (task.isSuccessful) {
+                        // Marca sesión como activa
+                        SessionManager.setLoggedIn(this, true)
+
                         startActivity(Intent(this, InicioTareasActivity::class.java))
                         finish()
                     } else {
@@ -77,7 +66,6 @@ class LoginActivity : AppCompatActivity() {
     ) {
         when (exception) {
             is FirebaseAuthInvalidUserException -> {
-                // El usuario no existe o está deshabilitado
                 if (exception.errorCode == "ERROR_USER_DISABLED") {
                     emailField.error = "La cuenta está deshabilitada"
                 } else {
@@ -86,7 +74,6 @@ class LoginActivity : AppCompatActivity() {
                 emailField.requestFocus()
             }
             is FirebaseAuthInvalidCredentialsException -> {
-                // Contraseña incorrecta o formato de email mal (ya validamos email antes)
                 if (exception.errorCode == "ERROR_WRONG_PASSWORD") {
                     passwordField.error = "Contraseña incorrecta"
                     passwordField.requestFocus()

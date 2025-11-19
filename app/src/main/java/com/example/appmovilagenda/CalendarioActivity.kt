@@ -3,6 +3,7 @@ package com.example.appmovilagenda
 import android.content.Intent
 import android.os.Bundle
 import android.view.MotionEvent
+import android.view.View
 import android.widget.CalendarView
 import android.widget.ImageView
 import android.widget.TextView
@@ -28,7 +29,6 @@ class CalendarioActivity : BaseActivity() {
     private val localeCL = Locale("es", "CL")
     private val sdfDia = SimpleDateFormat("dd-MM-yyyy", localeCL)
 
-    // Fecha base para posicionar el calendario al abrir
     private val calMes: Calendar = Calendar.getInstance(localeCL).apply {
         set(Calendar.HOUR_OF_DAY, 0)
         set(Calendar.MINUTE, 0)
@@ -55,7 +55,7 @@ class CalendarioActivity : BaseActivity() {
             drawerLayout.closeDrawers()
             true
         }
-        setupDrawerHeaderClose()
+        setupDrawerViews()
 
         chipMes = findViewById(R.id.chipMes)
         chipSemana = findViewById(R.id.chipSemana)
@@ -68,18 +68,14 @@ class CalendarioActivity : BaseActivity() {
         chipDia.setOnClickListener { startActivity(Intent(this, DiaActivity::class.java)) }
 
         calendarView = findViewById(R.id.calendarView)
-
-        // Posiciona el calendario en la fecha actual (o la que prefieras)
         calendarView.date = calMes.timeInMillis
 
-        // Selección de día -> abre Día
         calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
             val c = Calendar.getInstance(localeCL).apply { set(year, month, dayOfMonth, 0, 0, 0) }
             val fechaStr = sdfDia.format(c.time)
             startActivity(Intent(this, DiaActivity::class.java).putExtra(DiaActivity.EXTRA_FECHA, fechaStr))
         }
 
-        // Bloquear swipe vertical (cambio de mes por gesto) PERO permitir taps y flechas del header nativo
         bloquearSwipePeroPermitirTap()
     }
 
@@ -88,24 +84,25 @@ class CalendarioActivity : BaseActivity() {
             when (ev.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     v.parent?.requestDisallowInterceptTouchEvent(true)
-                    false // deja pasar DOWN (tap)
+                    false
                 }
-                MotionEvent.ACTION_MOVE -> true // bloquea swipe
+                MotionEvent.ACTION_MOVE -> true
                 MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                     v.parent?.requestDisallowInterceptTouchEvent(false)
-                    false // deja pasar UP (selección y flechas nativas)
+                    false
                 }
                 else -> false
             }
         }
     }
 
-    private fun setupDrawerHeaderClose() {
+    private fun setupDrawerViews() {
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
         }
+        findViewById<View>(R.id.btnLogoutFooter)?.setOnClickListener { performLogout() }
     }
 
     private fun setChipSelected(view: TextView, selected: Boolean) {

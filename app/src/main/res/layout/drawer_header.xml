@@ -20,4 +20,6 @@
         app:layout_constraintTop_toTopOf="parent"
         android:layout_marginStart="20dp"
         android:layout_marginTop="20dp"/>
+
+    <!-- Botón para Cerrar sesión en la parte inferior del header -->
 </androidx.constraintlayout.widget.ConstraintLayout>

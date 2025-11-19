@@ -3,10 +3,10 @@ package com.example.appmovilagenda
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -22,7 +22,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 
-class InicioTareasActivity : AppCompatActivity() {
+// AHORA hereda de BaseActivity para poder usar performLogout()
+class InicioTareasActivity : BaseActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var tareaAdapter: TareaAdapter
@@ -68,9 +69,7 @@ class InicioTareasActivity : AppCompatActivity() {
 
             db.collection("todos")
                 .add(doc)
-                .addOnSuccessListener {
-                    // Sin recordatorios
-                }
+                .addOnSuccessListener { }
                 .addOnFailureListener { e ->
                     Toast.makeText(this, "Error al guardar: ${e.message}", Toast.LENGTH_LONG).show()
                 }
@@ -96,7 +95,7 @@ class InicioTareasActivity : AppCompatActivity() {
             true
         }
 
-        setupDrawerHeaderClose()
+        setupDrawerViews()
 
         recyclerView = findViewById(R.id.recyclerTareas)
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -108,7 +107,6 @@ class InicioTareasActivity : AppCompatActivity() {
                 putExtra(EditarTareaActivity.EXTRA_DESCRIPCION, tarea.descripcion)
                 putExtra(EditarTareaActivity.EXTRA_FECHA, tarea.fecha)
                 putExtra(EditarTareaActivity.EXTRA_HORA, tarea.hora)
-                // Sin extra de recordatorio
             }
             startActivity(intent)
         }
@@ -134,10 +132,8 @@ class InicioTareasActivity : AppCompatActivity() {
         }
         ItemTouchHelper(swipe).attachToRecyclerView(recyclerView)
 
-        val fab: FloatingActionButton = findViewById(R.id.btnAgregar)
-        fab.setOnClickListener {
-            val intent = Intent(this, CrearTareaActivity::class.java)
-            crearTareaLauncher.launch(intent)
+        findViewById<FloatingActionButton>(R.id.btnAgregar).setOnClickListener {
+            crearTareaLauncher.launch(Intent(this, CrearTareaActivity::class.java))
         }
 
         findViewById<ImageView>(R.id.btnCalendario)?.setOnClickListener {
@@ -145,11 +141,16 @@ class InicioTareasActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupDrawerHeaderClose() {
+    private fun setupDrawerViews() {
+        // Header: botón para cerrar el drawer
         val header = if (navView.headerCount > 0) navView.getHeaderView(0)
         else navView.inflateHeaderView(R.layout.drawer_header)
         header.findViewById<ImageView>(R.id.btnMenuHeader)?.setOnClickListener {
             drawerLayout.closeDrawer(GravityCompat.START)
+        }
+        // Footer: botón Cerrar sesión en la zona inferior
+        findViewById<View>(R.id.btnLogoutFooter)?.setOnClickListener {
+            performLogout()
         }
     }
 
@@ -177,7 +178,6 @@ class InicioTareasActivity : AppCompatActivity() {
                         descripcion = doc.getString("descripcion").orEmpty(),
                         fecha = doc.getString("fecha").orEmpty(),
                         hora = doc.getString("hora").orEmpty(),
-                        // recordatorioMillis ya no se usa; si existiera en docs antiguos, lo ignoramos
                         createdAt = doc.getTimestamp("createdAt"),
                         userId = doc.getString("userId").orEmpty()
                     )
@@ -196,7 +196,6 @@ class InicioTareasActivity : AppCompatActivity() {
         val ref = db.collection("todos").document(tarea.id)
         ref.delete()
             .addOnSuccessListener {
-                // Sin cancelar recordatorios
                 Snackbar.make(recyclerView, "Tarea eliminada", Snackbar.LENGTH_LONG)
                     .setAction("Deshacer") {
                         val uid = auth.currentUser?.uid ?: return@setAction
@@ -210,9 +209,7 @@ class InicioTareasActivity : AppCompatActivity() {
                         )
                         db.collection("todos").document(tarea.id)
                             .set(data)
-                            .addOnSuccessListener {
-                                // Sin reprogramar recordatorios
-                            }
+                            .addOnSuccessListener { }
                     }
                     .show()
             }

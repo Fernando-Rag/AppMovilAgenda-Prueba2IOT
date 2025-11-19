@@ -2,4 +2,5 @@
 <resources>
     <string name="nav_open">Abrir menú de navegación</string>
     <string name="nav_close">Cerrar menú de navegación</string>
+    <string name="cerrar_sesion">Cerrar sesión</string>
 </resources>
